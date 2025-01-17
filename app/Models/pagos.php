@@ -8,22 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class pagos extends Model
 {
     use HasFactory;
+    protected $table = 'pago';
+    protected $primaryKey = 'pago_id';
+    public $timestamps = false;
+
     protected $fillable = [
-       'matricula_id',
-       'concepto',
-       'fecha',
-       'monto',
-       'mes_pago',
+        'matricula_id',
+        'concepto',
+        'fecha',
+        'monto',
+        'mes_pago',
     ];
-    // Relación: Un pago pertenece a una matrícula
+
     public function matricula()
     {
-        return $this->belongsTo(Matricula::class, 'matricula_id');
-    }
-
-    // Relación indirecta: Obtener el estudiante a través de la matrícula
-    public function estudiante()
-    {
-        return $this->hasOneThrough(Estudiantes::class, Matricula::class, 'id', 'id', 'matricula_id', 'estudiante_id');
+        return $this->belongsTo(Matricula::class, 'matricula_id', 'matricula_id');
     }
 }

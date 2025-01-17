@@ -20,7 +20,7 @@
             width: 40%; /* Ajusta el valor según tus necesidades */
         }
     </style>
-    
+
 @stop
 
 @section('js')

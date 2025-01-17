@@ -52,27 +52,28 @@
                     <tbody>
                         @foreach($carreras as $carrera)
                         <tr>
-                            <td>{{ $carrera->id }}</td>
+                            <td>{{ $carrera->carrera_id }}</td>
                             <td>{{ $carrera->nombre }}</td>
                             <td>
-                                @if($carrera->niveles)
-                                    @foreach($carrera->niveles as $nivel)
-                                        {{ $nivel->nombre }}
-                                    @endforeach
+                                @if($carrera->nivel)
+                                    {{ $carrera->nivel->nombre }}
                                 @else
-                                    Sin niveles asignados
+                                    Sin nivel asignado
                                 @endif
                             </td>
-                            <td>{{ $carrera->duracion }}</td>
+                            <td>{{ $carrera->duracion_meses }} meses</td>
                             <td>
-                                <form action="{{ route('carreras.destroy', $carrera->id) }}" method="POST" class="d-inline">
+                                <form action="{{ route('carreras.destroy', $carrera->carrera_id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar esta carrera?')">Eliminar</button>
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar esta carrera?')">
+                                        Eliminar
+                                    </button>
                                 </form>
                             </td>
                         </tr>
-                        @endforeach
+                    @endforeach
+
                     </tbody>
                 </table>
 <!-- Aquí se añaden los enlaces de paginación con estilo -->
@@ -113,11 +114,11 @@
             @endif
         </ul>
     </nav>
-</div>               
+</div>
             </div>
         </div>
     </div>
-     
+
 </section>
 
 @stop

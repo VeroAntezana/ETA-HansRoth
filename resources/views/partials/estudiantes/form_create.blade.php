@@ -26,7 +26,7 @@
 
     </div>
     <div class="row">
-      
+
 
         <div class="col-md-5">
             <div class="form-group">
@@ -39,11 +39,11 @@
             </div>
         </div>
 
-        
+
         <div class="col-md-5">
             <div class="form-group">
                 <label for="carnet">CARNET DE IDENTIDAD</label>
-                <input name="carnet" class="form-control my-colorpicker1" type="number" value="{{ old('carnet') }}"
+                <input name="ci" class="form-control my-colorpicker1" type="number" value="{{ old('carnet') }}"
                     step="1" min="0" value="0" required>
 
                 @error('carnet')
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-           
+
         <div class="col-md-5">
             <div class="form-group">
                 <label for="carnet">SEXO</label>
@@ -66,10 +66,10 @@
         <div class="col-md-5">
             <div class="form-group">
                 <label for="carrera">SELECCIONAR CARRERA Y NIVEL</label>
-                     <select name="carrera_nivel" class="form-control select2" style="width: 100%;">
-                        @foreach ($carreras_niveles as $carrera_nivel)
-                            <option value="{{ $carrera_nivel->id }}">
-                         {{ $carrera_nivel->carrera->nombre }} - {{ $carrera_nivel->nivel->nombre }}
+                     <select name="carrera_id" class="form-control select2" style="width: 100%;">
+                        @foreach ($carreras as $carrera)
+                            <option value="{{ $carrera->carrera_id }}">
+                         {{ $carrera->nombre }} - {{ $carrera->nivel->nombre }}
                              </option>
                          @endforeach
                     </select>
@@ -81,7 +81,7 @@
                 <label for="carrera">GESTION</label>
                 <select name="gestion_id" class="form-control select2" style="width: 100%;">
                     @foreach ($gestiones as $gestion)
-                    <option value="{{ $gestion->id }}">{{ $gestion->descripcion }}</option>
+                    <option value="{{ $gestion->gestion_id }}">{{ $gestion->descripcion }}</option>
                     @endforeach
                 </select>
             </div>

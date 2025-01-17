@@ -15,7 +15,7 @@ class NivelesController extends Controller
      */
     public function index()
     {
-        $niveles= Niveles::orderby('id', 'asc')->paginate(9);
+        $niveles= Niveles::orderby('nivel_id', 'asc')->paginate(9);
         return view('niveles.index',compact('niveles'));
     }
 
@@ -84,7 +84,7 @@ class NivelesController extends Controller
      */
     public function destroy($id)
     {
-        
+
         // Buscar el nivel por su ID
         $nivel = Niveles::find($id);
 

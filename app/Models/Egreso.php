@@ -14,9 +14,10 @@ class Egreso extends Model
         'fecha_fin',
         'gestion_id',
     ];
-    
+
     public function gestion()
     {
         return $this->belongsTo(Gestion::class,'gestion_id');
     }
+    public $timestamps = false;
 }

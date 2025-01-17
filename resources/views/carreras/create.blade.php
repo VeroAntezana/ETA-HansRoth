@@ -16,7 +16,7 @@
                     <label for="nivel">Nivelwd</label>
                     <select name="nivel_id" class="form-control select2" style="width: 100%;">
                         @foreach ($niveles as $nivel)
-                            <option value="{{ $nivel->id }}">
+                            <option value="{{$nivel->nivel_id}}">
                                 {{ $nivel->nombre }}
                             </option>
                         @endforeach

@@ -36,6 +36,7 @@ Route::get('getEstudianteInfo/{id}', [PagosController::class, 'getEstudianteInfo
 Route::get('estudiantes/{carrera}/{nivel}', [EstudiantesController::class, 'indexByNivel'])->name('estudiantes.indexByNivel');
 Route::resource('estudiantes',EstudiantesController::class);
 
+Route::post('/estudiantes/create/matricular', [EstudiantesController::class, 'MatricularEstudianteAntiguo'])->name('estudiantes.matricular');
 
 
 

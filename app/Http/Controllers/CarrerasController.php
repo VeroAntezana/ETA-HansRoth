@@ -15,10 +15,10 @@ class CarrerasController extends Controller
      */
     public function index()
     {
-       // $carreras= Carreras::orderby('id', 'asc')->paginate(9);
-       $carreras = Carreras::with('niveles')->orderBy('id', 'asc')->paginate(9);
-       $niveles=niveles::all();
-        return view('carreras.index',compact('carreras','niveles'));
+        // $carreras= Carreras::orderby('id', 'asc')->paginate(9);
+        $carreras = Carreras::with('nivel')->orderBy('nivel_id', 'asc')->paginate(9);
+        $niveles = niveles::all();
+        return view('carreras.index', compact('carreras', 'niveles'));
     }
 
     /**
@@ -28,9 +28,9 @@ class CarrerasController extends Controller
      */
     public function create()
     { //return view('niveles.create',compact('niveles'))
-       $niveles = niveles::all();
-      // dd($niveles);
-       return view('partials.carreras.form_create', compact('niveles'));
+        $niveles = niveles::all();
+        // dd($niveles);
+        return view('partials.carreras.form_create', compact('niveles'));
     }
 
     /**
@@ -41,10 +41,20 @@ class CarrerasController extends Controller
      */
     public function store(Request $request)
     {
-        $carrera = Carreras::create($request->all());
-        $carrera->niveles()->sync($request->input('nivel_id', []));
-        return redirect()->route('carreras.index', $carrera);
+        // Validar los datos
+        $validatedData = $request->validate([
+            'nombre' => 'required|string|max:255',
+            'duracion_meses' => 'required|integer|min:1',
+            'nivel_id' => 'required|exists:nivel,nivel_id', // Asegurarse de que el nivel existe
+        ]);
+
+        // Crear la carrera con los datos validados
+        Carreras::create($validatedData);
+
+        // Redirigir al índice con un mensaje de éxito
+        return redirect()->route('carreras.index')->with('success', 'Carrera creada correctamente');
     }
+
 
     /**
      * Display the specified resource.
@@ -88,18 +98,18 @@ class CarrerasController extends Controller
      */
     public function destroy($id)
     {
-         // Buscar el nivel por su ID
-         $carrera = Carreras::find($id);
+        // Buscar el nivel por su ID
+        $carrera = Carreras::find($id);
 
-         // Verificar si el nivel existe
-         if (!$carrera) {
-             return redirect()->route('carreras.index')->with('error', 'Carrera no encontrada');
-         }
- 
-         // Eliminar el nivel
-         $carrera->delete();
- 
-         // Redireccionar a la vista de index con un mensaje de éxito
-         return redirect()->route('carreras.index')->with('success', 'Carrera eliminada correctamente');
+        // Verificar si el nivel existe
+        if (!$carrera) {
+            return redirect()->route('carreras.index')->with('error', 'Carrera no encontrada');
+        }
+
+        // Eliminar el nivel
+        $carrera->delete();
+
+        // Redireccionar a la vista de index con un mensaje de éxito
+        return redirect()->route('carreras.index')->with('success', 'Carrera eliminada correctamente');
     }
 }

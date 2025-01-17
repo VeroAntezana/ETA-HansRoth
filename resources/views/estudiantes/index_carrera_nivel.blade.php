@@ -22,7 +22,7 @@
                     @endif
                 </h3>
             </div>
-            
+
             <div class="card-body p-0">
                 @if(session('error'))
                     <div class="alert alert-warning">
@@ -50,20 +50,22 @@
                             <tbody>
                                 @foreach($estudiantes as $estudiante)
                                 <tr>
-                                    <td>{{ $estudiante->id }}</td>
+                                    <td>{{ $estudiante->estudiante_id }}</td>
                                     <td>{{ $estudiante->nombre }}</td>
                                     <td>{{ $estudiante->apellidos }}</td>
-                                    <td>{{ $estudiante->carnet }}</td>
+                                    <td>{{ $estudiante->ci }}</td>
                                     <td>
-                                        @if($estudiante->carreraNivel)
-                                        {{ $estudiante->carreraNivel->carrera->nombre . ' - ' . $estudiante->carreraNivel->nivel->nombre }}
-                                        @else
+                                        @if($estudiante->carreras->isNotEmpty())
+                                        @foreach ($estudiante->carreras as $carrera)
+                                            {{ $carrera->nombre . ' - ' . $carrera->nivel->nombre }}
+                                        @endforeach
+                                    @else
                                         Sin carrera
-                                        @endif
+                                    @endif
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-warning btn-sm">Editar</button>
-                                        <form action="{{ route('estudiantes.destroy', $estudiante->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('estudiantes.destroy', $estudiante->estudiante_id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este estudiante?')">Eliminar</button>

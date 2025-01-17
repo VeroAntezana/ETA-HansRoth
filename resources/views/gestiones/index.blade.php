@@ -55,14 +55,14 @@
                         <tbody>
                             @foreach($gestiones as $gestion)
                                 <tr>
-                                    <td>{{ $gestion->id }}</td>
+                                    <td>{{ $gestion->gestion_id }}</td>
                                     <td>{{ $gestion->descripcion }}</td>
                                     <td>{{ $gestion->fecha_inicio }}</td>
                                     <td>{{ $gestion->fecha_fin }}</td>
                                     <td>
-                                        <button type="button" class="btn btn-warning btn-sm" onclick="editGestion({{ $gestion->id }})">Editar</button>
+                                        <button type="button" class="btn btn-warning btn-sm" onclick="editGestion({{ $gestion->gestion_id }})">Editar</button>
                                         <!-- Formulario de eliminación directamente en la tabla -->
-                                        <form action="{{ route('gestiones.destroy', $gestion->id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('gestiones.destroy', $gestion->gestion_id) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar esta gestion?')">Eliminar</button>
@@ -103,7 +103,7 @@
                 $('#formEditModal').modal('show');
             });
         }
-        
+
         function confirmarEliminacion(gestionId) {
             if (confirm('¿Estás seguro de que deseas eliminar este nivel?')) {
                 // Si el usuario hace clic en "Aceptar", redirige al controlador para eliminar el nivel

@@ -43,26 +43,26 @@
                 </div>
 
                 <div class="card-body p-0">
-                   
+
                         <table class="table table-hover table-head-fixed">
                             <thead class="table-light ">
                                 <tr>
                                     <th>ID</th>
                                     <th>NOMBRE</th>
                                     <th>OPCIONES</th>
-                                   
+
                                 </tr>
                             </thead>
-        
-                            
+
+
                             <tbody>
                                 @foreach($niveles as $nivel)
                                     <tr>
-                                        <td>{{ $nivel->id }}</td>
+                                        <td>{{ $nivel->nivel_id }}</td>
                                         <td>{{ $nivel->nombre }}</td>
                                         <td>
                                             <!-- Formulario de eliminación directamente en la tabla -->
-                                            <form action="{{ route('niveles.destroy', $nivel->id) }}" method="POST" class="d-inline">
+                                            <form action="{{ route('niveles.destroy', $nivel->nivel_id) }}" method="POST" class="d-inline">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este nivel?')">Eliminar</button>

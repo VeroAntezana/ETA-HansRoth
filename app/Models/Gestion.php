@@ -8,14 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Gestion extends Model
 {
     use HasFactory;
-    protected $table = 'gestiones';
+    protected $table = 'gestion';
+    protected $primaryKey = 'gestion_id';
     protected $fillable = [
         'descripcion',
         'fecha_inicio',
         'fecha_fin'
 
     ];
-    
+
     public function estudiantes()
     {
         return $this->hasMany(Estudiantes::class, 'gestion_id');
@@ -30,4 +31,5 @@ class Gestion extends Model
     {
         return $this->hasMany(Egreso::class);
     }
+    public $timestamps = false;
 }

@@ -12,13 +12,13 @@
                 @enderror
             </div>
         </div>
-        
+
         <div class="col-md-4">
             <div class="form-group">
                 <label for="nivel">Nivel</label>
                 <select name="nivel_id" class="form-control select2" style="width: 100%;">
                     @foreach ($niveles as $nivel)
-                    <option value="{{ $nivel->id }}">
+                    <option value="{{ $nivel->nivel_id }}">
                         {{ $nivel->nombre }}
                     </option>
                     @endforeach
@@ -27,7 +27,7 @@
         </div>
         <div class="form-group">
             <label for="duracion">DURACION </label>
-            <input type="text" name="duracion" class="form-control my-colorpicker1" value="{{ old('duracion') }}"
+            <input type="text" name="duracion_meses" class="form-control my-colorpicker1" value="{{ old('duracion') }}"
                 required>
 
             @error('duracion')

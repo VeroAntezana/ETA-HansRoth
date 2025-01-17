@@ -8,28 +8,50 @@ use Illuminate\Database\Eloquent\Model;
 class Estudiantes extends Model
 {
     use HasFactory;
+    protected $table = 'estudiante';
+
+    protected $primaryKey = 'estudiante_id';
     protected $fillable = [
         'nombre',
         'apellidos',
         'fecha_nacimiento',
-        'carnet',
+        'ci',
         'sexo'
-        
-        
+
+
     ];
-     // Relación: Un estudiante tiene muchas matrículas
-     public function matriculas()
-     {
-         return $this->hasMany(Matricula::class, 'estudiante_id');
-     }
- 
-     // Relación: Acceder a los pagos a través de las matrículas
-     public function pagos()
-     {
-         return $this->hasManyThrough(Pagos::class, Matricula::class, 'estudiante_id', 'matricula_id');
-     }
 
-    
+    public $timestamps = false;
 
-   
+
+    public function matriculas()
+    {
+        return $this->hasMany(Matricula::class, 'estudiante_carrera_id', 'estudiante_id');
+    }
+
+
+    public function pagos()
+    {
+        return $this->hasManyThrough(
+            pagos::class,
+            Matricula::class,
+            'estudiante_carrera_id',
+            'matricula_id',
+            'estudiante_id',
+            'matricula_id'
+        );
+    }
+
+
+    public function carreras()
+    {
+        return $this->belongsToMany(
+            Carreras::class,
+            'estudiante_carrera',
+            'estudiante_id',
+            'carrera_id',
+            'estudiante_id',
+            'carrera_id'
+        )->withPivot('fecha_inscripcion');
+    }
 }

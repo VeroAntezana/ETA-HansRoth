@@ -14,8 +14,8 @@ class GestionController extends Controller
      */
     public function index()
     {
-        $gestiones= Gestion::orderby('id', 'asc')->paginate(9);
-        return view('gestiones.index',compact('gestiones'));
+        $gestiones = Gestion::orderBy('gestion_id', 'asc')->paginate(9);
+        return view('gestiones.index', compact('gestiones'));
     }
 
     /**
@@ -26,7 +26,7 @@ class GestionController extends Controller
     public function create()
     {
         $gestiones = Gestion::get();
-        return view('gestiones.create',compact('gestiones'));
+        return view('gestiones.create', compact('gestiones'));
     }
 
     /**
@@ -86,18 +86,18 @@ class GestionController extends Controller
      */
     public function destroy($id)
     {
-        // Buscar el nivel por su ID
+        // Buscar la gestión por su ID
         $gestion = Gestion::find($id);
 
-        // Verificar si el nivel existe
+        // Verificar si la gestión existe
         if (!$gestion) {
-            return redirect()->route('gestiones.index')->with('error', 'Gestion no encontrada');
+            return redirect()->route('gestiones.index')->with('error', 'Gestión no encontrada');
         }
 
-        // Eliminar el nivel
+        // Eliminar la gestión
         $gestion->delete();
 
-        // Redireccionar a la vista de index con un mensaje de éxito
-        return redirect()->route('gestiones.index')->with('success', 'Gestion eliminada correctamente');
+        // Redireccionar a la vista de índice con un mensaje de éxito
+        return redirect()->route('gestiones.index')->with('success', 'Gestión eliminada correctamente');
     }
 }

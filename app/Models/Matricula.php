@@ -8,35 +8,28 @@ use Illuminate\Database\Eloquent\Model;
 class Matricula extends Model
 {
     use HasFactory;
+    protected $table = 'matricula';
+    protected $primaryKey = 'matricula_id';
+    public $timestamps = false;
+
     protected $fillable = [
-        'estudiante_id',
+        'estudiante_carrera_id',
         'gestion_id',
-        'carrera_nivel_id',
         'fecha_matricula',
-        'estado'
+        'estado',
     ];
 
-     // Relación: Una matrícula pertenece a un estudiante
-     public function estudiante()
-     {
-         return $this->belongsTo(Estudiantes::class, 'estudiante_id');
-     }
- 
-     // Relación: Una matrícula pertenece a una gestión
-     public function gestion()
-     {
-         return $this->belongsTo(Gestion::class, 'gestion_id');
-     }
- 
-     // Relación: Una matrícula pertenece a una carrera y nivel
-     public function carreraNivel()
-     {
-         return $this->belongsTo(carrera_niveles::class, 'carrera_nivel_id');
-     }
- 
-     // Relación: Una matrícula tiene muchos pagos
-     public function pagos()
-     {
-         return $this->hasMany(Pagos::class, 'matricula_id');
-     }
+    public function estudianteCarrera()
+    {
+        return $this->belongsTo(carrera_Estudiantes::class, 'estudiante_carrera_id', 'estudiante_carrera_id');
+    }
+
+    public function pagos()
+    {
+        return $this->hasMany(pagos::class, 'matricula_id', 'matricula_id');
+    }
+    public function gestion()
+    {
+        return $this->belongsTo(Gestion::class, 'gestion_id', 'gestion_id');
+    }
 }
