@@ -1,4 +1,4 @@
-<form id="form-matricula" action="{{route('estudiantes.matricular')}}" method="post" autocomplete="off" style="display: none;">
+<form id="form-matricula" action="{{route('estudiantes.matricular')}}" method="post" autocomplete="off" >
     @csrf
     <div class="row">
         <div class="col-md-5">
