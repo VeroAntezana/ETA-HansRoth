@@ -55,7 +55,7 @@
                                         </button>
                                     </div>
                                     <div class="modal-body">
-                                        
+
                                         @include('partials.estudiantes.form_matricularAntiguoEstudiante')
                                     </div>
                                 </div>

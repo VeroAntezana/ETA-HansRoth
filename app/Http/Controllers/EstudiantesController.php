@@ -9,6 +9,7 @@ use App\Models\Gestion;
 use App\Models\Niveles;
 use App\Models\Matricula;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class EstudiantesController extends Controller
 {
@@ -26,10 +27,17 @@ class EstudiantesController extends Controller
     }
 
 
-    public function indexByNivel($carrera_nombre, $nivel)
+    public function indexByNivel($carrera_nombre, $nivel_nombre)
     {
         // Busca la carrera según el nombre
-        $carrera = Carreras::where('nombre', str_replace('-', ' ', $carrera_nombre))->first();
+        $carrera = DB::table('carrera')
+            ->join('nivel', 'carrera.nivel_id', '=', 'nivel.nivel_id')
+            ->select('carrera.*', 'nivel.nombre as nivel_nombre')
+            ->where('carrera.nombre', str_replace('-', ' ', $carrera_nombre))
+            ->where('nivel.nombre', $nivel_nombre)
+            ->first();
+        // Busca el nivel según el nombre
+        $nivel = niveles::where('nombre', $nivel_nombre)->first();
 
         if (!$carrera) {
             $estudiantes = collect(); // Colección vacía
@@ -38,38 +46,26 @@ class EstudiantesController extends Controller
                 ->with('error', 'La carrera especificada no existe.');
         }
 
-        // Busca el nivel según el nombre
-        $nivel = niveles::where('nombre', $nivel)->first();
+
 
         if (!$nivel) {
             return redirect()->route('estudiantes.index')->with('error', 'El nivel especificado no existe.');
         }
 
-        // Filtra estudiantes por carrera y nivel
-        $estudiantes = Estudiantes::whereHas('carreras', function ($query) use ($carrera, $nivel) {
-            $query->where('carrera.carrera_id', $carrera->carrera_id) // Filtra por carrera_id
-                  ->where('carrera.nivel_id', $nivel->nivel_id);      // Filtra por nivel_id
-        })
-            ->with([
-                'carreras' => function ($query) {
-                    $query->with('nivel'); // Relación con niveles
-                },
-                'matriculas' => function ($query) {
-                    $query->with('gestion'); // Relación con gestiones
-                }
-            ])
-            ->get();
+        // Llamada al procedimiento almacenado
+        $estudiantes = DB::select('CALL ObtenerEstudiantesPorCarrera(?)', [$carrera->carrera_id]);
 
 
         $gestiones = Gestion::all();
 
-        if ($estudiantes->isEmpty()) {
+        if (empty($estudiantes)) {
             return view('estudiantes.index_carrera_nivel', compact('estudiantes', 'carrera', 'nivel', 'gestiones'))
                 ->with('info', 'No hay estudiantes registrados para esta carrera y nivel.');
         }
 
         return view('estudiantes.index_carrera_nivel', compact('estudiantes', 'carrera', 'nivel', 'gestiones'));
     }
+
 
 
 
@@ -154,12 +150,12 @@ class EstudiantesController extends Controller
 
         // Validar los datos del request, excepto la unicidad del CI
         $request->validate([
-            'estudiante_id'=> 'required',
+            'estudiante_id' => 'required',
             'carrera_id' => 'required',
             'gestion_id' => 'required',
         ]);
 
-        
+
 
         // Crear la relación con la carrera
         $carreraEstudiante = carrera_Estudiantes::create([
@@ -242,7 +238,7 @@ class EstudiantesController extends Controller
                 $nombreCompleto = "{$estudiante->nombre} {$estudiante->apellidos}";
                 $carreras = $estudiante->carreras->map(function ($carrera) {
                     return [
-                        'id_carrera'=> $carrera->carrera_id,
+                        'id_carrera' => $carrera->carrera_id,
                         'nombre_carrera' => $carrera->nombre,
                         'nivel' => $carrera->nivel->nombre ?? 'Sin nivel',
                     ];

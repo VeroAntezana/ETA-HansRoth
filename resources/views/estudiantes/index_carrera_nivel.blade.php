@@ -31,7 +31,7 @@
                 @endif
 
                 @if($carrera)
-                    @if($estudiantes->isEmpty())
+                    @if(empty( $estudiantes))
                         <div class="alert alert-info">
                             No hay estudiantes registrados para esta carrera y nivel.
                         </div>
@@ -50,22 +50,17 @@
                             <tbody>
                                 @foreach($estudiantes as $estudiante)
                                 <tr>
-                                    <td>{{ $estudiante->estudiante_id }}</td>
-                                    <td>{{ $estudiante->nombre }}</td>
-                                    <td>{{ $estudiante->apellidos }}</td>
-                                    <td>{{ $estudiante->ci }}</td>
+                                    <td>{{ $estudiante->ID_Estudiante }}</td>
+                                    <td>{{ $estudiante->NombreEstudiante }}</td>
+                                    <td>{{ $estudiante->ApellidosEstudiante }}</td>
+                                    <td>{{ $estudiante->CI }}</td>
                                     <td>
-                                        @if($estudiante->carreras->isNotEmpty())
-                                        @foreach ($estudiante->carreras as $carrera)
-                                            {{ $carrera->nombre . ' - ' . $carrera->nivel->nombre }}
-                                        @endforeach
-                                    @else
-                                        Sin carrera
-                                    @endif
+                                            {{ $estudiante->NombreCarrera . ' - ' . $estudiante->Nivel }}
+
                                     </td>
                                     <td>
                                         <button type="button" class="btn btn-warning btn-sm">Editar</button>
-                                        <form action="{{ route('estudiantes.destroy', $estudiante->estudiante_id) }}" method="POST" class="d-inline">
+                                        <form action="{{ route('estudiantes.destroy', $estudiante->ID_Estudiante) }}" method="POST" class="d-inline">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este estudiante?')">Eliminar</button>
