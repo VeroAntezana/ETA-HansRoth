@@ -195,7 +195,7 @@ class EstudiantesController extends Controller
      */
     public function edit(Estudiantes $estudiantes)
     {
-        //
+        return view('estudiantes.edit', compact('estudiante'));
     }
 
     /**
@@ -205,9 +205,20 @@ class EstudiantesController extends Controller
      * @param  \App\Models\Estudiantes  $estudiantes
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Estudiantes $estudiantes)
+    public function update(Request $request, $id)
     {
-        //
+        $estudiante = Estudiantes::findOrFail($id);
+    
+        $request->validate([
+            'nombre' => 'required',
+            'apellidos' => 'required',
+            'fecha_nacimiento' => 'required|date',
+            'ci' => 'required',
+            'sexo' => 'required|in:M,F',
+        ]);
+    
+        $estudiante->update($request->all());
+        return redirect()->route('estudiantes.index')->with('success', 'Estudiante actualizado exitosamente');
     }
 
     /**

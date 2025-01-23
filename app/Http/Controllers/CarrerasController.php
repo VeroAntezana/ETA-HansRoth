@@ -16,7 +16,9 @@ class CarrerasController extends Controller
     public function index()
     {
         // $carreras= Carreras::orderby('id', 'asc')->paginate(9);
-        $carreras = Carreras::with('nivel')->orderBy('nivel_id', 'asc')->paginate(9);
+        $carreras = Carreras::with('nivel')
+        ->orderBy('carrera_id', 'asc')  // Añadimos un segundo ordenamiento
+        ->paginate(9);
         $niveles = niveles::all();
         return view('carreras.index', compact('carreras', 'niveles'));
     }
@@ -85,9 +87,18 @@ class CarrerasController extends Controller
      * @param  \App\Models\carreras  $carreras
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, carreras $carreras)
+    public function update(Request $request, $id)
     {
-        //
+        $carrera = Carreras::findOrFail($id);
+    
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'duracion_meses' => 'required|integer|min:1',
+            'nivel_id' => 'required|exists:nivel,nivel_id',
+        ]);
+    
+        $carrera->update($request->all());
+        return redirect()->route('carreras.index')->with('success', 'Carrera actualizada exitosamente');
     }
 
     /**

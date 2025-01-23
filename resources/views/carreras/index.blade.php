@@ -56,13 +56,29 @@
                             <td>{{ $carrera->nombre }}</td>
                             <td>
                                 @if($carrera->nivel)
-                                    {{ $carrera->nivel->nombre }}
+                                {{ $carrera->nivel->nombre }}
                                 @else
-                                    Sin nivel asignado
+                                Sin nivel asignado
                                 @endif
                             </td>
                             <td>{{ $carrera->duracion_meses }} meses</td>
                             <td>
+                                <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $carrera->carrera_id }}">Editar</button>
+                                <div class="modal fade" id="editModal{{ $carrera->carrera_id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Editar Carrera</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                @include('partials.carreras.form_edit', ['carrera' => $carrera])
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <form action="{{ route('carreras.destroy', $carrera->carrera_id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')
@@ -72,49 +88,49 @@
                                 </form>
                             </td>
                         </tr>
-                    @endforeach
+                        @endforeach
 
                     </tbody>
                 </table>
-<!-- Aquí se añaden los enlaces de paginación con estilo -->
-<div class="d-flex justify-content-sm-end mt-5">
-    <nav aria-label="Page navigation example">
-        <ul class="pagination">
-            <!-- Previous Page Link -->
-            @if ($carreras->onFirstPage())
-                <li class="page-item disabled"><span class="page-link">Previous</span></li>
-            @else
-                <li class="page-item"><a class="page-link" href="{{ $carreras->previousPageUrl() }}">Previous</a></li>
-            @endif
+                <!-- Aquí se añaden los enlaces de paginación con estilo -->
+                <div class="d-flex justify-content-sm-end mt-5">
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <!-- Previous Page Link -->
+                            @if ($carreras->onFirstPage())
+                            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                            @else
+                            <li class="page-item"><a class="page-link" href="{{ $carreras->previousPageUrl() }}">Previous</a></li>
+                            @endif
 
-            <!-- Pagination Elements -->
-            @foreach ($carreras->links()->elements as $element)
-                <!-- "Three Dots" Separator -->
-                @if (is_string($element))
-                    <li class="page-item disabled"><span class="page-link">{{ $element }}</span></li>
-                @endif
+                            <!-- Pagination Elements -->
+                            @foreach ($carreras->links()->elements as $element)
+                            <!-- "Three Dots" Separator -->
+                            @if (is_string($element))
+                            <li class="page-item disabled"><span class="page-link">{{ $element }}</span></li>
+                            @endif
 
-                <!-- Array Of Links -->
-                @if (is_array($element))
-                    @foreach ($element as $page => $url)
-                        @if ($page == $carreras->currentPage())
+                            <!-- Array Of Links -->
+                            @if (is_array($element))
+                            @foreach ($element as $page => $url)
+                            @if ($page == $carreras->currentPage())
                             <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
-                        @else
+                            @else
                             <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
-                        @endif
-                    @endforeach
-                @endif
-            @endforeach
+                            @endif
+                            @endforeach
+                            @endif
+                            @endforeach
 
-            <!-- Next Page Link -->
-            @if ($carreras->hasMorePages())
-                <li class="page-item"><a class="page-link" href="{{ $carreras->nextPageUrl() }}">Next</a></li>
-            @else
-                <li class="page-item disabled"><span class="page-link">Next</span></li>
-            @endif
-        </ul>
-    </nav>
-</div>
+                            <!-- Next Page Link -->
+                            @if ($carreras->hasMorePages())
+                            <li class="page-item"><a class="page-link" href="{{ $carreras->nextPageUrl() }}">Next</a></li>
+                            @else
+                            <li class="page-item disabled"><span class="page-link">Next</span></li>
+                            @endif
+                        </ul>
+                    </nav>
+                </div>
             </div>
         </div>
     </div>
