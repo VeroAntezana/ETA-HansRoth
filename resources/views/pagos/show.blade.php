@@ -15,13 +15,13 @@
                             @csrf
                             <div class="form-group">
                                 <label for="nombre">Nombre:</label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $pago->estudiante->nombre }} {{ $pago->estudiante->apellidos }}" readonly>
+                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $estudiante->nombre }} {{ $estudiante->apellidos }}" readonly>
                             </div>
                             <div class="form-group">
                                 <label for="carrera">Carrera:</label>
-                                <input type="text" class="form-control" id="carrera" name="carrera" value="@if($pago->estudiante->carreras->isNotEmpty()) {{ $pago->estudiante->carreras->first()->carrera_nombre . ' - ' . $pago->estudiante->carreras->first()->nivel_nombre }} @else Sin carrera @endif" readonly>
+                                <input type="text" class="form-control" id="carrera" name="carrera" value="{{ $carrera->nombre }} - {{ $nivel->nombre }}" readonly>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="concepto">Concepto:</label>
                                 <input type="text" class="form-control" id="concepto" name="concepto" value="{{ $pago->concepto }}" readonly>
@@ -36,7 +36,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="meses">Meses Pagados:</label>
-                                <input type="text" class="form-control" id="meses" name="meses" value="{{ $pago->mes_pago }}" readonly>
+                                <input type="text" class="form-control" id="meses" name="meses" value="{{$pago->mes_pago}}" readonly>
                             </div>
                             <button type="button" onclick="imprimirRecibo()" class="btn btn-primary" id="btnImprimir">Imprimir Recibo</button>
                         </form>
@@ -47,6 +47,7 @@
     </div>
 </section>
 @stop
+
 @section('css')
 <style>
     /* Ocultar el botón de impresión cuando se imprime la página */
@@ -57,13 +58,12 @@
     }
 </style>
 @stop
+
 @section('js')
 <script>
-  
    // Función para imprimir el recibo
    function imprimirRecibo() {
         window.print();
     }
-
 </script>
 @stop

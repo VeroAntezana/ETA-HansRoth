@@ -43,35 +43,48 @@
 
 
                     <tbody>
-                        @foreach($pagos as $pago)
-                        <tr>
-                            <td>{{ $pago->id }}</td>
-                            <td>{{ $pago->estudiante->nombre }}</td>
-                            <td>{{ $pago->estudiante->apellidos }}</td>
-                            <td>{{ $pago->mes_pago }}</td>
-                            <td>
-                                @if($pago->estudiante->carreras->isNotEmpty())
-                                {{ $pago->estudiante->carreras->first()->carrera_nombre . ' - ' .
-                                $pago->estudiante->carreras->first()->nivel_nombre }}
-                            @else
-                                Sin carrera
-                            @endif
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-warning btn-sm">Editar</button>
-                                <a href="{{ route('pagos.show', $pago->id) }}" class="btn btn-success btn-sm">Ver</a>
-                                <!-- Formulario de eliminación directamente en la tabla -->
-                                <form action="{{ route('pagos.destroy', $pago->id) }}" method="POST" class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('¿Estás seguro de que deseas eliminar este estudiante?')">Eliminar</button>
-                                </form>
-
-                            </td>
-                        </tr>
-                        @endforeach
+                        @if(count($pagoConDetalles) > 0)
+                            @foreach($pagoConDetalles as $pago)
+                                <tr>
+                                    <td>{{ $pago['id'] }}</td>
+                                    <td>{{ $pago['estudiante']->nombre }}</td>
+                                    <td>{{ $pago['estudiante']->apellidos }}</td>
+                                    <td>
+                                        @foreach($pago['meses_pagados'] as $mes)
+                                            {{ $mes }}
+                                            @if (!$loop->last), @endif
+                                        @endforeach
+                                    </td>
+                                    <td>
+                                        @if($pago['carrera'] && $pago['nivel'])
+                                            {{ $pago['carrera']->nombre . ' - ' . $pago['nivel']->nombre }}
+                                        @else
+                                            Sin carrera
+                                        @endif
+                                    </td>
+                                    <td>
+                                        <button type="button" class="btn btn-warning btn-sm">Editar</button>
+                                        <a href="{{ route('pagos.show', ['pago' => $pago['id']]) }}" class="btn btn-success btn-sm">Ver</a>
+                                        <!-- Formulario de eliminación directamente en la tabla -->
+                                        <form action="{{ route('pagos.destroy', ['pago' => $pago['id']]) }}" method="POST" class="d-inline">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('¿Estás seguro de que deseas eliminar este pago?')">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="6" class="text-center">No se encontraron pagos.</td>
+                            </tr>
+                        @endif
                     </tbody>
+
+
+
+
                 </table>
             </div>
 

@@ -17,7 +17,7 @@ class niveles extends Model
     // Modelo Nivel.php
     public function carreras()
     {
-        return $this->hasMany(Carreras::class, 'nivel_id', 'carrera_id');
+        return $this->hasMany(Carreras::class, 'nivel_id', 'nivel_id');
     }
 
     public function estudiantes()

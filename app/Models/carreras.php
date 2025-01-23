@@ -43,4 +43,8 @@ class Carreras extends Model
             'estudiante_carrera_id'
         );
     }
+    public function estudianteCarreras()
+    {
+        return $this->hasMany(carrera_Estudiantes::class, 'carrera_id');
+    }
 }
