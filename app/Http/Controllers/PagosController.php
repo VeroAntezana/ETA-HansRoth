@@ -19,87 +19,101 @@ class PagosController extends Controller
      */
     public function index()
     {
-        $pago=pagos::all();
+        $pago = pagos::all();
         //$pagos = Pagos::with(['estudiante.carreras'])->get();
-        return view('pagos.index',compact('pago'));
+        return view('pagos.index', compact('pago'));
     }
-    public function pdf(){
-       $pagos=Pagos::all();
-       $pdf = Pdf::loadView('pagos.pdf',compact('pagos'));
-       return $pdf->stream();
+    public function pdf()
+    {
+        $pagos = Pagos::all();
+        $pdf = Pdf::loadView('pagos.pdf', compact('pagos'));
+        return $pdf->stream();
     }
     public function lista()
     {
-        $pagos=pagos::all();
-        $estudiantes = Estudiantes::with ('carreras')->orderBy('id', 'asc')->paginate(9);
-        $carreras=Carreras::all();
-        $carreras = Carreras::with('niveles')->get();
-        return view('pagos.lista',compact('pagos','estudiantes','carreras'));
+        $pago = Pagos::with([
+            'matricula.estudianteCarrera.estudiante',
+            'matricula.estudianteCarrera.carrera.nivel'
+        ])->get();
+
+        // Convertimos la colección a un formato más conveniente para la vista
+        $pagoConDetalles = $pago->map(function ($pagoItem) {
+            return [
+                'id' => $pagoItem->pago_id,
+                'estudiante' => $pagoItem->matricula->estudianteCarrera->estudiante,
+                'carrera' => $pagoItem->matricula->estudianteCarrera->carrera,
+                'nivel' => $pagoItem->matricula->estudianteCarrera->carrera->nivel,
+                'meses_pagados' => explode(',', $pagoItem->mes_pago), // Asegúrate de que sea un array
+                'concepto' => $pagoItem->concepto,
+                'fecha' => $pagoItem->fecha,
+                'monto' => $pagoItem->monto
+            ];
+        });
+
+        return view('pagos.lista', compact('pagoConDetalles'));
     }
-   
+
     public function search(Request $request)
     {
-        
-        if($request->ajax()){
- 
-            $data=Estudiantes::where('id','like','%'.$request->search.'%')
-            ->orwhere('nombre','like','%'.$request->search.'%')
-            ->orwhere('apellidos','like','%'.$request->search.'%')->get();
-            
+
+        if ($request->ajax()) {
+
+            $data = Estudiantes::where('id', 'like', '%' . $request->search . '%')
+                ->orwhere('nombre', 'like', '%' . $request->search . '%')
+                ->orwhere('apellidos', 'like', '%' . $request->search . '%')->get();
+
             return response()->json($data);
-            
         }
-       
     }
 
     public function getEstudianteInfo($id)
     {
         $estudiante = Estudiantes::find($id);
-        
+
         if (!$estudiante) {
             return response()->json(['success' => false, 'message' => 'Estudiante no encontrado'], 404);
         }
-        
+
         // Obtener el ID de la carrera y el nivel
         $carreraNivelIds = explode('_', $estudiante->carrera_nivel);
         $carreraId = $carreraNivelIds[0];
         $nivelId = $carreraNivelIds[1];
-        
+
         // Buscar el nombre de la carrera y el nivel
         $carrera = Carreras::find($carreraId);
         $nivel = niveles::find($nivelId);
-    
+
         if (!$carrera || !$nivel) {
             return response()->json(['success' => false, 'message' => 'Carrera o nivel no encontrado'], 404);
         }
-    
+
         // Combinar el nombre de la carrera y el nivel
         $carreraNivel = $carrera->nombre . ' - ' . $nivel->nombre;
-    
+
         return response()->json([
             'success' => true,
             'carreraNivel' => $carreraNivel,
         ]);
     }
-    
 
-    
-    
+
+
+
 
     /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
      */
-    
-     public function create()
-     {
-         $pago = pagos::get();
-         return view('pagos.index', compact('pago'));
-     }
-     
-        //$pagos = Pagos::with(['estudiante.carreras'])->get();
-    
+
+    public function create()
+    {
+        $pago = pagos::get();
+        return view('pagos.index', compact('pago'));
+    }
+
+    //$pagos = Pagos::with(['estudiante.carreras'])->get();
+
 
     /**
      * Store a newly created resource in storage.
@@ -107,36 +121,36 @@ class PagosController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-   public function store(Request $request)
+    public function store(Request $request)
 
-{
-    $request->validate([
-        'concepto' => 'required',
-        'fecha' => 'required',
-        'monto' => 'required',
-        'meses' => 'required|array', // Asumiendo que 'meses' es un array enviado desde el formulario
-        'estudiante_id' => 'required|exists:estudiantes,id', // Asegúrate de ajustar el nombre de la tabla si es diferente
-    ]);
-    // Obtén los nombres de los meses seleccionados
-    $selectedMonths = $request->input('meses');
+    {
+        $request->validate([
+            'concepto' => 'required',
+            'fecha' => 'required',
+            'monto' => 'required',
+            'meses' => 'required|array', // Asumiendo que 'meses' es un array enviado desde el formulario
+            'matricula_id' => 'required|int', // Asegúrate de ajustar el nombre de la tabla si es diferente
+        ]);
+        // Obtén los nombres de los meses seleccionados
+        $selectedMonths = $request->input('meses');
 
-    // Convierte los nombres de los meses en una cadena separada por comas
-    $mesesPagados = implode(', ', $selectedMonths);
+        // Convierte los nombres de los meses en una cadena separada por comas
+        $mesesPagados = implode(', ', $selectedMonths);
 
-    // Crear un nuevo objeto Pago con los datos recibidos
-    $pago = Pagos::create([
-        'concepto' => $request->input('concepto'),
-        'fecha' => $request->input('fecha'),
-        'monto' => $request->input('monto'),
-        'mes_pago' => $mesesPagados,
-        'estudiante_id' => $request->input('estudiante_id'),
-    ]);
+        // Crear un nuevo objeto Pago con los datos recibidos
+        $pago = Pagos::create([
+            'concepto' => $request->input('concepto'),
+            'fecha' => $request->input('fecha'),
+            'monto' => $request->input('monto'),
+            'mes_pago' => $mesesPagados,
+            'matricula_id' => $request->input('matricula_id'),
+        ]);
 
-    // Guardar el pago en la base de datos
-    $pago->save();
-    // Redireccionar o devolver una respuesta según sea necesario
-    return redirect()->route('pagos.show', $pago->id);
-}
+        // Guardar el pago en la base de datos
+        $pago->save();
+        // Redireccionar o devolver una respuesta según sea necesario
+        return redirect()->route('pagos.show', $pago->pago_id);
+    }
 
 
 
@@ -146,12 +160,19 @@ class PagosController extends Controller
      * @param  \App\Models\pagos  $pagos
      * @return \Illuminate\Http\Response
      */
-    public function show( $id)
+    public function show($id)
     {
+        // Buscar el pago por su id
         $pago = Pagos::findOrFail($id);
-        return view('pagos.show', compact('pago'));
+
+        // Obtener los detalles del estudiante, su carrera, y los meses pagados
+        $estudiante = $pago->matricula->estudianteCarrera->estudiante; // Relación entre Pago -> Matricula -> Estudiante
+        $carrera = $pago->matricula->estudianteCarrera->carrera; // Relación entre Pago -> Matricula -> Carrera
+        $nivel = $pago->matricula->estudianteCarrera->carrera->nivel;
+        $mesesPagados = $pago->meses_pagados; // Los meses que el estudiante pagó, los puedes obtener si están almacenados en el pago
+        return view('pagos.show', compact('pago', 'estudiante', 'carrera', 'mesesPagados','nivel'));
     }
-    
+
 
     /**
      * Show the form for editing the specified resource.
@@ -186,6 +207,4 @@ class PagosController extends Controller
     {
         //
     }
-
-    
 }

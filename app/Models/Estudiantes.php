@@ -26,7 +26,14 @@ class Estudiantes extends Model
 
     public function matriculas()
     {
-        return $this->hasMany(Matricula::class, 'estudiante_carrera_id', 'estudiante_id');
+        return $this->hasManyThrough(
+            Matricula::class,
+            carrera_Estudiantes::class,
+            'estudiante_id', // Clave foránea en `carrera_Estudiantes`
+            'estudiante_carrera_id', // Clave foránea en `Matricula`
+            'estudiante_id', // Clave primaria en `Estudiantes`
+            'estudiante_carrera_id' // Clave primaria en `carrera_Estudiantes`
+        );
     }
 
 
@@ -53,5 +60,9 @@ class Estudiantes extends Model
             'estudiante_id',
             'carrera_id'
         )->withPivot('fecha_inscripcion');
+    }
+    public function estudianteCarreras()
+    {
+        return $this->hasMany(carrera_Estudiantes::class, 'estudiante_id');
     }
 }

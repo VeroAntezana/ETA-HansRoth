@@ -31,5 +31,9 @@ class Gestion extends Model
     {
         return $this->hasMany(Egreso::class);
     }
+    public function matriculas()
+    {
+        return $this->hasMany(Matricula::class, 'gestion_id');
+    }
     public $timestamps = false;
 }

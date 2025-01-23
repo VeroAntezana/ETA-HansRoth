@@ -260,8 +260,11 @@ class EstudiantesController extends Controller
     {
         $texto = trim($request->q);
 
-        // Búsqueda en el modelo Estudiante con relaciones
-        $resultado = Estudiantes::with(['carreras.nivel', 'matriculas.gestion'])
+        $resultado = Estudiantes::with([
+            'estudianteCarreras.carrera.nivel',
+            'estudianteCarreras.matriculas.gestion',
+            'estudianteCarreras.matriculas.pagos'
+        ])
             ->where(function ($query) use ($texto) {
                 $query->where('ci', 'like', "%$texto%")
                     ->orWhereRaw("LOWER(CONCAT(nombre, ' ', apellidos)) LIKE LOWER(?)", ["%$texto%"])
@@ -271,19 +274,29 @@ class EstudiantesController extends Controller
             ->get()
             ->map(function ($estudiante) {
                 $nombreCompleto = "{$estudiante->nombre} {$estudiante->apellidos}";
-                $carreras = $estudiante->carreras->map(function ($carrera) {
+                $carreras = $estudiante->estudianteCarreras->map(function ($estudianteCarrera) {
+                    $carrera = $estudianteCarrera->carrera;
+                    $matriculas = $estudianteCarrera->matriculas;
+
                     return [
                         'id_carrera' => $carrera->carrera_id,
                         'nombre_carrera' => $carrera->nombre,
                         'nivel' => $carrera->nivel->nombre ?? 'Sin nivel',
-                    ];
-                });
+                        'matriculas' => $matriculas->map(function ($matricula) {
+                            $mesesPagados = $matricula->pagos->pluck('mes_pago')->unique();
+                            $modulos = $mesesPagados->map(function ($item) {
+                                return explode(', ', $item);
+                            })->flatten()->unique(); // Meses ya pagados
+                            $todosLosMeses = collect(['Mod 1', 'Mod 2', 'Mod 3', 'Mod 4', 'Mod 5', 'Mod 6', 'Mod 7', 'Mod 8', 'Mod 9', 'Mod 10', 'Mod 11', 'Mod 12']);
+                            $mesesPendientes = $todosLosMeses->diff($modulos); // Filtro para obtener pendientes
 
-                $gestiones = $estudiante->matriculas->map(function ($matricula) {
-                    return [
-                        'gestion' => $matricula->gestion->descripcion ?? 'Sin gestión',
-                        'fecha_inicio' => $matricula->gestion->fecha_inicio ?? null,
-                        'fecha_fin' => $matricula->gestion->fecha_fin ?? null,
+                            return [
+                                'id_matricula' => $matricula->matricula_id,
+                                'gestion' => $matricula->gestion->descripcion ?? 'Sin gestión',
+                                'meses_pagados' => $modulos->values(), // Meses ya pagados
+                                'meses_pendientes' => $mesesPendientes->values(), // Meses pendientes
+                            ];
+                        }),
                     ];
                 });
 
@@ -294,7 +307,6 @@ class EstudiantesController extends Controller
                     'sexo' => $estudiante->sexo,
                     'fecha_nacimiento' => $estudiante->fecha_nacimiento,
                     'carreras' => $carreras,
-                    'gestiones' => $gestiones,
                 ];
             });
 

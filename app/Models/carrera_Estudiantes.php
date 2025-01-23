@@ -12,4 +12,18 @@ class carrera_Estudiantes extends Model
     protected $primaryKey = 'estudiante_carrera_id';
     protected $fillable = ['estudiante_id', 'carrera_id', 'fecha_inscripcion'];
     public $timestamps = false;
+    public function estudiante()
+    {
+        return $this->belongsTo(Estudiantes::class, 'estudiante_id');
+    }
+
+    public function carrera()
+    {
+        return $this->belongsTo(Carreras::class, 'carrera_id');
+    }
+
+    public function matriculas()
+    {
+        return $this->hasMany(Matricula::class, 'estudiante_carrera_id');
+    }
 }

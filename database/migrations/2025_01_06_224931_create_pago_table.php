@@ -16,7 +16,7 @@ class CreatePagoTable extends Migration
         Schema::create('pago', function (Blueprint $table) {
             $table->integer('pago_id', true);
             $table->integer('matricula_id')->index('matricula_id');
-            $table->enum('concepto', ['Modular', 'Mensual']);
+            $table->string('concepto', 255);
             $table->date('fecha');
             $table->decimal('monto', 10);
             $table->string('mes_pago', 50)->nullable();

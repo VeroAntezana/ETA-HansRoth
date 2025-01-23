@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class CreateNivelTable extends Migration
@@ -17,6 +18,14 @@ class CreateNivelTable extends Migration
             $table->integer('nivel_id', true);
             $table->string('nombre', 50)->unique('nombre');
         });
+        $niveles = [
+            ['nombre' => 'BASICO'],
+            ['nombre' => 'AUXILIAR'],
+            ['nombre' => 'MEDIO'],
+        ];
+
+        // Insertamos los niveles en la tabla 'nivel'
+        DB::table('nivel')->insert($niveles);
     }
 
     /**
