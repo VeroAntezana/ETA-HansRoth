@@ -208,7 +208,7 @@ class EstudiantesController extends Controller
     public function update(Request $request, $id)
     {
         $estudiante = Estudiantes::findOrFail($id);
-    
+
         $request->validate([
             'nombre' => 'required',
             'apellidos' => 'required',
@@ -216,7 +216,7 @@ class EstudiantesController extends Controller
             'ci' => 'required',
             'sexo' => 'required|in:M,F',
         ]);
-    
+
         $estudiante->update($request->all());
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante actualizado exitosamente');
     }
@@ -227,9 +227,33 @@ class EstudiantesController extends Controller
      * @param  \App\Models\Estudiantes  $estudiantes
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Estudiantes $estudiantes)
+    public function destroy($id)
     {
-        //
+        try {
+            DB::beginTransaction();
+            
+            $estudiante = Estudiantes::findOrFail($id);
+            
+            // Delete matriculas first
+            DB::table('matricula')
+                ->join('estudiante_carrera', 'matricula.estudiante_carrera_id', '=', 'estudiante_carrera.estudiante_carrera_id')
+                ->where('estudiante_carrera.estudiante_id', $id)
+                ->delete();
+                
+            // Delete estudiante_carrera records
+            DB::table('estudiante_carrera')
+                ->where('estudiante_id', $id)
+                ->delete();
+                
+            // Finally delete the estudiante
+            $estudiante->delete();
+            
+            DB::commit();
+            return redirect()->route('estudiantes.index')->with('success', 'Estudiante eliminado exitosamente');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('estudiantes.index')->with('error', 'Error al eliminar el estudiante');
+        }
     }
 
     public function buscarEstudiante(Request $request)
