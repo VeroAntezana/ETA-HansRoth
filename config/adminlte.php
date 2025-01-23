@@ -455,7 +455,7 @@ return [
             'icon'    => 'fas fa-fw far fa-newspaper',
             'submenu' => [
                 [
-                    'text' => 'NUEVA CARRERA',
+                    'text' => 'LISTA DE CARRERAS',
                     'url'  => 'carreras/',
                     'icon' => 'fas fa-fw fa-long-arrow-alt-right',
                 ],
