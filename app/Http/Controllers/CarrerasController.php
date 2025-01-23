@@ -87,9 +87,18 @@ class CarrerasController extends Controller
      * @param  \App\Models\carreras  $carreras
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, carreras $carreras)
+    public function update(Request $request, $id)
     {
-        //
+        $carrera = Carreras::findOrFail($id);
+    
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'duracion_meses' => 'required|integer|min:1',
+            'nivel_id' => 'required|exists:nivel,nivel_id',
+        ]);
+    
+        $carrera->update($request->all());
+        return redirect()->route('carreras.index')->with('success', 'Carrera actualizada exitosamente');
     }
 
     /**

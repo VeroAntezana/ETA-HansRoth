@@ -15,8 +15,8 @@ class NivelesController extends Controller
      */
     public function index()
     {
-        $niveles= Niveles::orderby('nivel_id', 'asc')->paginate(9);
-        return view('niveles.index',compact('niveles'));
+        $niveles = Niveles::orderby('nivel_id', 'asc')->paginate(9);
+        return view('niveles.index', compact('niveles'));
     }
 
     /**
@@ -27,7 +27,7 @@ class NivelesController extends Controller
     public function create()
     {
         $niveles = niveles::get();
-        return view('niveles.create',compact('niveles'));
+        return view('niveles.create', compact('niveles'));
     }
 
     /**
@@ -71,9 +71,11 @@ class NivelesController extends Controller
      * @param  \App\Models\niveles  $niveles
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, niveles $niveles)
+    public function update(Request $request, $id)
     {
-        //
+        $nivel = Niveles::findOrFail($id);
+        $nivel->update($request->validate(['nombre' => 'required']));
+        return redirect()->route('niveles.index')->with('success', 'Nivel actualizado exitosamente');
     }
 
     /**

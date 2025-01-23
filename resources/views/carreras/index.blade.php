@@ -63,6 +63,22 @@
                             </td>
                             <td>{{ $carrera->duracion_meses }} meses</td>
                             <td>
+                                <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $carrera->carrera_id }}">Editar</button>
+                                <div class="modal fade" id="editModal{{ $carrera->carrera_id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Editar Carrera</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                @include('partials.carreras.form_edit', ['carrera' => $carrera])
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <form action="{{ route('carreras.destroy', $carrera->carrera_id) }}" method="POST" class="d-inline">
                                     @csrf
                                     @method('DELETE')

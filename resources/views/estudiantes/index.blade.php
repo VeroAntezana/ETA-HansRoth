@@ -3,64 +3,64 @@
 @section('title', 'estudiantes')
 
 @section('content')
-    <section class="content">
-        <div class="container-fluid p-4">
-            <div class="card">
-                <div class="card-header justify-content-between">
-                    <div class="row justify-content-between">
-                        <div class="col-xs-4 my-auto">
-                            <h3 class="card-title my-auto">
-                                <strong>LISTA DE ESTUDIANTES GENERAL</strong>
-                                <a class="btn" href="{{ route('estudiantes.index') }}">
-                                    <i class="fas fa-sync fa-md fa-fw"></i>
-                                </a>
-                            </h3>
-                        </div>
+<section class="content">
+    <div class="container-fluid p-4">
+        <div class="card">
+            <div class="card-header justify-content-between">
+                <div class="row justify-content-between">
+                    <div class="col-xs-4 my-auto">
+                        <h3 class="card-title my-auto">
+                            <strong>LISTA DE ESTUDIANTES GENERAL</strong>
+                            <a class="btn" href="{{ route('estudiantes.index') }}">
+                                <i class="fas fa-sync fa-md fa-fw"></i>
+                            </a>
+                        </h3>
+                    </div>
 
-                        <div class="col-xs">
-                            <button data-toggle="modal" data-target="#formCreateModal" class="btn btn-primary"
-                                type="button">Matricular Nuevo Estudiante</button>
-                        </div>
-                        <div class="modal fade" id="formCreateModal" tabindex="-1" aria-labelledby="formCreateLabel"
-                            aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="fomrCreateLabel">Registrar nuevo </h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
-                                        @include('partials.estudiantes.form_create')
-                                    </div>
+                    <div class="col-xs">
+                        <button data-toggle="modal" data-target="#formCreateModal" class="btn btn-primary"
+                            type="button">Matricular Nuevo Estudiante</button>
+                    </div>
+                    <div class="modal fade" id="formCreateModal" tabindex="-1" aria-labelledby="formCreateLabel"
+                        aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="fomrCreateLabel">Registrar nuevo </h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    @include('partials.estudiantes.form_create')
                                 </div>
                             </div>
                         </div>
+                    </div>
 
 
-                        <div class="col-xs">
-                            <button data-toggle="modal" data-target="#matricularEstudianteModal" class="btn btn-primary" type="button">
-                                Matricular Antiguo Estudiante
-                            </button>
-                        </div>
+                    <div class="col-xs">
+                        <button data-toggle="modal" data-target="#matricularEstudianteModal" class="btn btn-primary" type="button">
+                            Matricular Antiguo Estudiante
+                        </button>
+                    </div>
 
-                        <div class="modal fade" id="matricularEstudianteModal" tabindex="-1" aria-labelledby="matricularEstudianteLabel" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="matricularEstudianteLabel">Matricular Antiguo Estudiante</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
-                                    </div>
-                                    <div class="modal-body">
+                    <div class="modal fade" id="matricularEstudianteModal" tabindex="-1" aria-labelledby="matricularEstudianteLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="matricularEstudianteLabel">Matricular Antiguo Estudiante</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
 
-                                        @include('partials.estudiantes.form_matricularAntiguoEstudiante')
-                                    </div>
+                                    @include('partials.estudiantes.form_matricularAntiguoEstudiante')
                                 </div>
                             </div>
                         </div>
+                    </div>
 
 
 
@@ -84,53 +84,126 @@
 
                         <tbody>
                             @foreach ($estudiantes as $estudiante)
-                                <tr>
-                                    <td>{{ $estudiante->estudiante_id }}</td>
-                                    <td>{{ $estudiante->nombre }}</td>
-                                    <td>{{ $estudiante->apellidos }}</td>
-                                    <td>{{ $estudiante->ci }}</td>
-                                    <td>
-                                        @if ($estudiante->carreras->isNotEmpty())
-                                            @foreach ($estudiante->carreras as $carrera)
-                                                {{ $carrera->nombre }} - {{ optional($carrera->nivel)->nombre }}<br>
-                                            @endforeach
-                                        @else
-                                            Sin carrera asignada
-                                        @endif
-                                    </td>
-                                    <td>
-                                        <button type="button" class="btn btn-warning btn-sm">Editar</button>
-                                        <!-- Formulario de eliminación directamente en la tabla -->
-                                        <form action="{{ route('estudiantes.destroy', $estudiante->estudiante_id) }}"
-                                            method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                onclick="return confirm('¿Estás seguro de que deseas eliminar este estudiante?')">
-                                                Eliminar
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
+                            <tr>
+                                <td>{{ $estudiante->estudiante_id }}</td>
+                                <td>{{ $estudiante->nombre }}</td>
+                                <td>{{ $estudiante->apellidos }}</td>
+                                <td>{{ $estudiante->ci }}</td>
+                                <td>
+                                    @if ($estudiante->carreras->isNotEmpty())
+                                    @foreach ($estudiante->carreras as $carrera)
+                                    {{ $carrera->nombre }} - {{ optional($carrera->nivel)->nombre }}<br>
+                                    @endforeach
+                                    @else
+                                    Sin carrera asignada
+                                    @endif
+                                </td>
+                                <td>
+                                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#showModal{{ $estudiante->estudiante_id }}">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    <div class="modal fade" id="showModal{{ $estudiante->estudiante_id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Información del Estudiante</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    @include('partials.estudiantes.form_show', ['estudiante' => $estudiante])
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $estudiante->estudiante_id }}">Editar</button>
+                                    <div class="modal fade" id="editModal{{ $estudiante->estudiante_id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Editar Estudiante</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    @include('partials.estudiantes.form_edit', ['estudiante' => $estudiante])
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Formulario de eliminación directamente en la tabla -->
+                                    <form action="{{ route('estudiantes.destroy', $estudiante->estudiante_id) }}"
+                                        method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                            onclick="return confirm('¿Estás seguro de que deseas eliminar este estudiante?')">
+                                            Eliminar
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
                             @endforeach
 
                         </tbody>
                     </table>
+
+                    <div class="d-flex justify-content-sm-end mt-5">
+                        <nav aria-label="Page navigation example">
+                            <ul class="pagination">
+                                <!-- Previous Page Link -->
+                                @if ($estudiantes->onFirstPage())
+                                <li class="page-item disabled"><span class="page-link">Previous</span></li>
+                                @else
+                                <li class="page-item"><a class="page-link" href="{{ $estudiantes->previousPageUrl() }}">Previous</a></li>
+                                @endif
+
+                                <!-- Pagination Elements -->
+                                @foreach ($estudiantes->links()->elements as $element)
+                                <!-- "Three Dots" Separator -->
+                                @if (is_string($element))
+                                <li class="page-item disabled"><span class="page-link">{{ $element }}</span></li>
+                                @endif
+
+                                <!-- Array Of Links -->
+                                @if (is_array($element))
+                                @foreach ($element as $page => $url)
+                                @if ($page == $estudiantes->currentPage())
+                                <li class="page-item active"><span class="page-link">{{ $page }}</span></li>
+                                @else
+                                <li class="page-item"><a class="page-link" href="{{ $url }}">{{ $page }}</a></li>
+                                @endif
+                                @endforeach
+                                @endif
+                                @endforeach
+
+                                <!-- Next Page Link -->
+                                @if ($estudiantes->hasMorePages())
+                                <li class="page-item"><a class="page-link" href="{{ $estudiantes->nextPageUrl() }}">Next</a></li>
+                                @else
+                                <li class="page-item disabled"><span class="page-link">Next</span></li>
+                                @endif
+                            </ul>
+                        </nav>
+                    </div>
                 </div>
 
             </div>
         </div>
 
-    </section>
+</section>
 @stop
 
 @section('js')
-    <script>
-        function confirmarEliminacion(estudianteId) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta carrera?')) {
-                // Si el usuario hace clic en "Aceptar", redirige al controlador para eliminar el nivel
-                window.location.href = '{{ url('estudiantes') }}/' + carreraId;
-            }
+<script>
+    function confirmarEliminacion(estudianteId) {
+        if (confirm('¿Estás seguro de que deseas eliminar esta carrera?')) {
+            // Si el usuario hace clic en "Aceptar", redirige al controlador para eliminar el nivel
+            window.location.href = '{{ url('
+            estudiantes ') }}/' + carreraId;
         }
-    </script>
+    }
+</script>
 @stop
