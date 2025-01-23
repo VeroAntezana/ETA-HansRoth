@@ -9,8 +9,7 @@
                 <div class="card-header">
                     <div class="row justify-content-between">
                         <button class="btn btn-primary" onclick="toggleForm('form-estudiante')">Matricular Nuevo Estudiante</button>
-                        <button class="btn btn-secondary" onclick="toggleForm('form-matricula')">Matricular Antiguo Estudiante
-                            Estudiante</button>
+                        <button class="btn btn-secondary" onclick="toggleForm('form-matricula')">Matricular Antiguo Estudiante</button>
                     </div>
                 </div>
                 <div class="card-body">
@@ -199,7 +198,7 @@
 
         const buscarEstudiante = async (texto) => {
             try {
-                const resultado = await fetch(`http://eta-hansroth.test/api/estudiantes/create/buscar?q=${texto}`);
+                const resultado = await fetch(`http://127.0.0.1:8000/api/estudiantes/create/buscar?q=${texto}`);
                 if (!resultado.ok) {
                     throw new Error(`Error en la solicitud: ${resultado.status}`);
                 }

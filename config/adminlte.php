@@ -477,14 +477,9 @@ return [
                     'icon'    => 'fas fa-fw fas fa-hand-holding-usd'
                 ],
                 [
-                    'text' => 'INGRESOS',
+                    'text' => 'LISTA DE PAGOS',
                     'url'  => 'pagos/lista',
-                    'icon' => 'fas fa-fw fas fa-file-invoice-dollar'
-                ],
-                [
-                    'text'    => 'EGRESOS',
-                    'url'     => '#',
-                    'icon'    => 'fas fa-fw fas fa-wallet'
+                    'icon' => 'fas fa-fw fas fa-align-justify',
                 ],
                 
             ],
@@ -502,13 +497,19 @@ return [
             ],
         ],
         [
-            'text'    => 'REGISTROS PAGOS',
+            'text'    => 'REPORTES',
             'icon'    => 'fas fa-fw far fa-newspaper',
             'submenu' => [
+              
                 [
-                    'text' => 'LISTA',
-                    'url'  => 'carreras/',
-                    'icon' => 'fas fa-fw fas fa-align-justify',
+                    'text' => 'INGRESOS',
+                    'url'  => 'pagos/lista',
+                    'icon' => 'fas fa-fw fas fa-file-invoice-dollar'
+                ],
+                [
+                    'text'    => 'EGRESOS',
+                    'url'     => '#',
+                    'icon'    => 'fas fa-fw fas fa-wallet'
                 ],
             ],
         ],

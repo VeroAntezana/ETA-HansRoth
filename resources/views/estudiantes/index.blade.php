@@ -217,6 +217,87 @@
 
 @section('js')
 <script>
+    const inputEstudiante = document.getElementById('buscar_estudiante');
+    const sugerencias = document.getElementById('sugerencias');
+    const inputNombreApellido = document.getElementById('nombre_apellido');
+    const inputCI = document.getElementById('carnetCI');
+    const selectCarrera = document.getElementById('matriculaCarrera');
+    const estudianteID = document.getElementById('estudiante_id')
+
+    const buscarEstudiante = async (texto) => {
+        try {
+            const resultado = await fetch(`http://127.0.0.1:8000/api/estudiantes/create/buscar?q=${texto}`);
+            if (!resultado.ok) {
+                throw new Error(`Error en la solicitud: ${resultado.status}`);
+            }
+            return await resultado.json();
+        } catch (error) {
+            console.error('Hubo un problema con la solicitud fetch:', error);
+            return [];
+        }
+    };
+
+    const mostrarSugerencias = (estudiantes) => {
+        sugerencias.innerHTML = '';
+        if (estudiantes.length === 0) {
+            sugerencias.style.display = 'none';
+            return;
+        }
+
+        estudiantes.forEach((estudiante) => {
+            const div = document.createElement('div');
+            div.classList.add('dropdown-item');
+            div.textContent = `${estudiante.nombre_completo} (CI: ${estudiante.ci})`;
+            div.onclick = () => seleccionarEstudiante(estudiante);
+            sugerencias.appendChild(div);
+        });
+
+        sugerencias.style.display = 'block';
+    };
+
+    const seleccionarEstudiante = (estudiante) => {
+        // Rellenar campos con los datos del estudiante
+        inputNombreApellido.value = estudiante.nombre_completo;
+        inputCI.value = estudiante.ci;
+        estudianteID.value = estudiante.id_estudiante;
+
+        // Eliminar carreras en las que ya esté matriculado
+        estudiante.carreras.forEach((carrera) => {
+            const option = Array.from(selectCarrera.options).find(
+                (opt) => opt.textContent.includes(carrera.nombre_carrera)
+            );
+            if (option) {
+                option.remove();
+            }
+        });
+
+        // Ocultar las sugerencias
+        sugerencias.style.display = 'none';
+    };
+
+    // Función debounce
+    const debounce = (func, delay) => {
+        let timer;
+        return function(...args) {
+            clearTimeout(timer); // Cancela el temporizador anterior
+            timer = setTimeout(() => func.apply(this, args), delay); // Configura un nuevo temporizador
+        };
+    };
+
+    const manejarCambio = async (e) => {
+        const texto = e.target.value;
+        if (texto.length >= 2) {
+            const estudiantes = await buscarEstudiante(texto);
+            mostrarSugerencias(estudiantes);
+        } else {
+            sugerencias.style.display = 'none';
+        }
+    };
+
+    // Aplica debounce a manejarCambio con un retraso de 300ms
+    inputEstudiante.addEventListener('keyup', debounce(manejarCambio, 300));
+</script>
+<script>
     function confirmarEliminacion(estudianteId) {
         if (confirm('¿Estás seguro de que deseas eliminar esta carrera?')) {
             // Si el usuario hace clic en "Aceptar", redirige al controlador para eliminar el nivel
