@@ -18,6 +18,7 @@ class CreateNivelTable extends Migration
             $table->integer('nivel_id', true);
             $table->string('nombre', 50)->unique('nombre');
         });
+        
         $niveles = [
             ['nombre' => 'BASICO'],
             ['nombre' => 'AUXILIAR'],
