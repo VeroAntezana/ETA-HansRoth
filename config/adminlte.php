@@ -448,6 +448,29 @@ return [
 
                     ],
                 ],
+
+                [
+                    'text' => 'ESTUDIANTES BORDADO ARTESANAL E INDUSTRIAL',
+                    'url'  => 'estudiantes/bordado-artesanal-e-industrial',
+                    'icon' => 'fas fa-fw fa-user',
+                    'submenu' => [
+                        [
+                        'text' => ' BASICO',
+                        'url'  => 'estudiantes/bordado-artesanal-e-industrial/basico',
+                       'icon' => 'fas fa-fw fa-users',
+                        ],
+                        [
+                            'text' => ' AUXILIAR',
+                          'url'  => 'estudiantes/bordado-artesanal-e-industrial/auxiliar',
+                           'icon' => 'fas fa-fw fa-users',
+                            ],
+                            [
+                                'text' => ' MEDIO',
+                              'url'  => 'estudiantes/bordado-artesanal-e-industrial/medio',
+                               'icon' => 'fas fa-fw fa-users',
+                            ]
+                    ],
+                ],
             ],
         ],
         [
