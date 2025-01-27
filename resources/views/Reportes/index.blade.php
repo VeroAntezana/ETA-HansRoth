@@ -5,6 +5,23 @@
 @section('content')
     <section class="content">
         <div class="container-fluid p-4">
+            <div class="card shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title mb-0 font-weight-bold">
+                        <strong>Total en Caja</strong>
+                    </h3>
+                    <a class="btn btn-link" href="{{ route('pagos.lista') }}">
+                        <i class="fas fa-sync fa-lg"></i>
+                    </a>
+                </div>
+                <div class="card-body d-flex justify-content-center align-items-center flex-column">
+                    <h4 class="text-success mb-3 font-weight-bold">
+                        Bs {{ number_format($totalPagos, 2) }} <!-- Formateo de moneda con 2 decimales -->
+                    </h4>
+                    <p class="text-muted">Total acumulado de pagos en caja</p>
+                </div>
+            </div>
+
             <div class="card">
 
                 <div class="card-header justify-content-between">
@@ -32,11 +49,11 @@
                     <table class="table table-hover table-head-fixed">
                         <thead class="table-light ">
                             <tr>
-                                <th>ID</th>
-                                <th>NOMBRES</th>
-                                <th>APELLIDOS</th>
-                                <th>MESES PAGADOS</th>
-                                <th>CARRERA-NIVEL</th>
+                                <th>#</th>
+                                <th>Fecha</th>
+                                <th>Recibo</th>
+                                <th>Detalles</th>
+                                <th>Ingreso</th>
                                 <th>OPCIONES</th>
 
                             </tr>
@@ -47,36 +64,15 @@
                             @if (count($pagoConDetalles) > 0)
                                 @foreach ($pagoConDetalles as $pago)
                                     <tr>
-                                        <td>{{ $pago['id'] }}</td>
-                                        <td>{{ $pago['estudiante']->nombre }}</td>
-                                        <td>{{ $pago['estudiante']->apellidos }}</td>
+                                        <td>{{ $loop->iteration }}</td>
+                                        <td>{{ $pago['fecha']}}</td>
+                                        <td>{{$pago['id']}}</td>
+                                        <td>{{$pago['detalle']}}</td>
+                                        <td>{{$pago['ingreso']}}</td>
                                         <td>
-                                            @foreach ($pago['meses_pagados'] as $mes)
-                                                {{ $mes }}
-                                                @if (!$loop->last)
-                                                    ,
-                                                @endif
-                                            @endforeach
-                                        </td>
-                                        <td>
-                                            @if ($pago['carrera'] && $pago['nivel'])
-                                                {{ $pago['carrera']->nombre . ' - ' . $pago['nivel']->nombre }}
-                                            @else
-                                                Sin carrera
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <button type="button" class="btn btn-warning btn-sm">Editar</button>
+                                         
                                             <a href="{{ route('pagos.show', ['pago' => $pago['id']]) }}"
-                                                class="btn btn-success btn-sm">Ver</a>
-                                            <!-- Formulario de eliminación directamente en la tabla -->
-                                            <form action="{{ route('pagos.destroy', ['pago' => $pago['id']]) }}"
-                                                method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-danger btn-sm"
-                                                    onclick="return confirm('¿Estás seguro de que deseas eliminar este pago?')">Eliminar</button>
-                                            </form>
+                                            class="btn btn-success btn-sm">Ver</a>
                                         </td>
                                     </tr>
                                 @endforeach

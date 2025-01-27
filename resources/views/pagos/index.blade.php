@@ -242,7 +242,9 @@
 
         const buscarEstudiante = async (texto) => {
             try {
-                const resultado = await fetch(`http://127.0.0.1:8000/api/estudiantes/create/buscar?q=${texto}`);
+                const url = `{{ config('app.url') }}/api/estudiantes/create/buscar?q=${texto}`;
+                const resultado = await fetch(url);
+
                 if (!resultado.ok) {
                     throw new Error(`Error en la solicitud: ${resultado.status}`);
                 }
@@ -276,7 +278,7 @@
             selectCarrera.innerHTML = '';
 
             estudiante.carreras.forEach((carrera) => {
-              
+
                 // Verifica si la carrera ya está en el select
                 const optionExists = Array.from(selectCarrera.options).some(
                     (option) => option.value === carrera.id
@@ -286,7 +288,7 @@
                     const option = document.createElement('option');
                     option.value = carrera.matriculas[0].id_matricula; // Usamos el id de la carrera como value
                     option.textContent = carrera.nombre_carrera + '-' + carrera
-                    .nivel; // El nombre de la carrera como texto visible
+                        .nivel; // El nombre de la carrera como texto visible
                     selectCarrera.appendChild(option);
                 }
             });

@@ -73,3 +73,26 @@ CREATE TABLE egreso (
     gestion_id INT NOT NULL,
     FOREIGN KEY (gestion_id) REFERENCES gestion(gestion_id)
 );
+
+
+SELECT
+    p.pago_id AS "ID Pago",
+    p.fecha AS "Fecha de Pago",
+    CONCAT(
+        e.nombre, ' ', e.apellidos, ', ',
+        'Meses Pagados: ', p.mes_pago, ', ',
+        'Carrera y Nivel: ', c.nombre, ' - ', n.nombre
+    ) AS "Detalle",
+    p.monto AS "Ingreso"
+FROM
+    pago p
+JOIN
+    matricula m ON p.matricula_id = m.matricula_id
+JOIN
+    estudiante_carrera ec ON m.estudiante_carrera_id = ec.estudiante_carrera_id
+JOIN
+    estudiante e ON ec.estudiante_id = e.estudiante_id
+JOIN
+    carrera c ON ec.carrera_id = c.carrera_id
+JOIN
+    nivel n ON c.nivel_id = n.nivel_id;

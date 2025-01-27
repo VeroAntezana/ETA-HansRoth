@@ -26,9 +26,9 @@ class CreateCarreraTable extends Migration
 
         // Definir la duración de cada nivel
         $duracionesPorNivel = [
-            'BASICO' => 6,
-            'AUXILIAR' => 6,
-            'MEDIO' => 12
+            'BASICO' => 5,
+            'AUXILIAR' => 5,
+            'MEDIO' => 10
         ];
 
         // Lista de carreras
