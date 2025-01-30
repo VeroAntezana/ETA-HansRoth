@@ -170,9 +170,19 @@ class PagosController extends Controller
         $carrera = $pago->matricula->estudianteCarrera->carrera; // Relación entre Pago -> Matricula -> Carrera
         $nivel = $pago->matricula->estudianteCarrera->carrera->nivel;
         $mesesPagados = $pago->meses_pagados; // Los meses que el estudiante pagó, los puedes obtener si están almacenados en el pago
-        return view('pagos.show', compact('pago', 'estudiante', 'carrera', 'mesesPagados','nivel'));
+        return view('pagos.show', compact('pago', 'estudiante', 'carrera', 'mesesPagados', 'nivel'));
     }
 
+    public function print($id)
+    {
+        $pago = Pagos::findOrFail($id);
+        $estudiante = $pago->matricula->estudianteCarrera->estudiante; // Relación entre Pago -> Matricula -> Estudiante
+        $carrera = $pago->matricula->estudianteCarrera->carrera; // Relación entre Pago -> Matricula -> Carrera
+        $nivel = $pago->matricula->estudianteCarrera->carrera->nivel;
+        $mesesPagados = $pago->meses_pagados;
+
+        return view('pagos.print', compact('pago', 'estudiante', 'carrera','mesesPagados', 'nivel'));
+    }
 
     /**
      * Show the form for editing the specified resource.

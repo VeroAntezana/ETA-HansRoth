@@ -30,6 +30,7 @@ Route::resource('gestiones',GestionController::class);
 //pagos
 Route::get('/search', [PagosController::class, 'search']);
 Route::get('/pagos/lista', [PagosController::class, 'lista'])->name('pagos.lista');
+Route::get('/pagos/{id}/print', [PagosController::class, 'print'])->name('pagos.print');
 Route::resource('pagos',PagosController::class);
 Route::get('getEstudianteInfo/{id}', [PagosController::class, 'getEstudianteInfo']);
 // Rutas específicas para niveles de carreras

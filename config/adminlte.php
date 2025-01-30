@@ -500,7 +500,7 @@ return [
                     'icon'    => 'fas fa-fw fas fa-hand-holding-usd'
                 ],
                 [
-                    'text' => 'LISTA DE PAGOS',
+                    'text' => 'LISTA GENERAL DE PAGOS',
                     'url'  => 'pagos/lista',
                     'icon' => 'fas fa-fw fas fa-align-justify',
                 ],

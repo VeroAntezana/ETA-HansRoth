@@ -34,7 +34,7 @@
                             <th>ID</th>
                             <th>NOMBRES</th>
                             <th>APELLIDOS</th>
-                            <th>MESES PAGADOS</th>
+                            <th>MODULOS PAGADOS</th>
                             <th>CARRERA-NIVEL</th>
                             <th>OPCIONES</th>
 
