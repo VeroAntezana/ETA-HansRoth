@@ -244,18 +244,20 @@
     const selectCarrera = document.getElementById('matriculaCarrera');
     const estudianteID = document.getElementById('matricula_id');
 
-    const buscarEstudiante = async (texto) => {
-        try {
-            const resultado = await fetch(`http://127.0.0.1:8000/api/estudiantes/create/buscar?q=${texto}`);
-            if (!resultado.ok) {
-                throw new Error(`Error en la solicitud: ${resultado.status}`);
+        const buscarEstudiante = async (texto) => {
+            try {
+                const url = `{{ config('app.url') }}/api/estudiantes/create/buscar?q=${texto}`;
+                const resultado = await fetch(url);
+
+                if (!resultado.ok) {
+                    throw new Error(`Error en la solicitud: ${resultado.status}`);
+                }
+                return await resultado.json();
+            } catch (error) {
+                console.error('Hubo un problema con la solicitud fetch:', error);
+                return [];
             }
-            return await resultado.json();
-        } catch (error) {
-            console.error('Hubo un problema con la solicitud fetch:', error);
-            return [];
-        }
-    };
+        };
 
     const mostrarSugerencias = (estudiantes) => {
         sugerencias.innerHTML = '';
@@ -285,7 +287,21 @@
             const optionExists = Array.from(selectCarrera.options).some(
                 (option) => option.value === carrera.id
             );
+            estudiante.carreras.forEach((carrera) => {
 
+                // Verifica si la carrera ya está en el select
+                const optionExists = Array.from(selectCarrera.options).some(
+                    (option) => option.value === carrera.id
+                );
+
+                if (!optionExists) {
+                    const option = document.createElement('option');
+                    option.value = carrera.matriculas[0].id_matricula; // Usamos el id de la carrera como value
+                    option.textContent = carrera.nombre_carrera + '-' + carrera
+                        .nivel; // El nombre de la carrera como texto visible
+                    selectCarrera.appendChild(option);
+                }
+            });
             if (!optionExists) {
                 const option = document.createElement('option');
                 option.value = carrera.matriculas[0].id_matricula; // Usamos el id de la carrera como value

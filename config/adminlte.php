@@ -504,7 +504,7 @@ return [
                     'url'  => 'pagos/lista',
                     'icon' => 'fas fa-fw fas fa-align-justify',
                 ],
-                
+
             ],
         ],
         [
@@ -516,17 +516,17 @@ return [
                     'url'  => 'gestiones/',
                     'icon' => 'fas fa-calendar-plus',
                 ],
-               
+
             ],
         ],
         [
             'text'    => 'REPORTES',
             'icon'    => 'fas fa-fw far fa-newspaper',
             'submenu' => [
-              
+
                 [
                     'text' => 'INGRESOS',
-                    'url'  => 'pagos/lista',
+                    'url'  => 'Reportes',
                     'icon' => 'fas fa-fw fas fa-file-invoice-dollar'
                 ],
                 [
@@ -537,7 +537,7 @@ return [
             ],
         ],
 
-        
+
     ],
 
     /*

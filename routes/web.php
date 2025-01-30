@@ -6,6 +6,7 @@ use App\Http\Controllers\CarrerasController;
 use App\Http\Controllers\EstudiantesController;
 use App\Http\Controllers\PagosController;
 use App\Http\Controllers\GestionController;
+use App\Http\Controllers\reportesController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,8 +40,7 @@ Route::resource('estudiantes',EstudiantesController::class);
 
 Route::post('/estudiantes/create/matricular', [EstudiantesController::class, 'MatricularEstudianteAntiguo'])->name('estudiantes.matricular');
 
-
-
+Route::resource('Reportes',reportesController::class);
 
 
 

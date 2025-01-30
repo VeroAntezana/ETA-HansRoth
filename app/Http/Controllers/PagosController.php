@@ -36,21 +36,28 @@ class PagosController extends Controller
             'matricula.estudianteCarrera.carrera.nivel'
         ])->get();
 
+        $totalPagos = $pago->sum('monto');
+
         // Convertimos la colección a un formato más conveniente para la vista
         $pagoConDetalles = $pago->map(function ($pagoItem) {
             return [
                 'id' => $pagoItem->pago_id,
+                'matricula_id' => $pagoItem->matricula->id, // Agregar el ID de matrícula
                 'estudiante' => $pagoItem->matricula->estudianteCarrera->estudiante,
                 'carrera' => $pagoItem->matricula->estudianteCarrera->carrera,
                 'nivel' => $pagoItem->matricula->estudianteCarrera->carrera->nivel,
-                'meses_pagados' => explode(',', $pagoItem->mes_pago), // Asegúrate de que sea un array
+                'meses_pagados' => explode(',', $pagoItem->mes_pago), // Convertir los meses en un array
                 'concepto' => $pagoItem->concepto,
                 'fecha' => $pagoItem->fecha,
                 'monto' => $pagoItem->monto
             ];
         });
 
-        return view('pagos.lista', compact('pagoConDetalles'));
+        // Agrupar los pagos por el id de matricula
+        $pagosAgrupados = $pagoConDetalles->groupBy('matricula_id');
+
+
+        return view('pagos.lista', compact('pagoConDetalles','totalPagos'));
     }
 
     public function search(Request $request)
