@@ -96,3 +96,23 @@ JOIN
     carrera c ON ec.carrera_id = c.carrera_id
 JOIN
     nivel n ON c.nivel_id = n.nivel_id;
+
+SELECT
+    m.matricula_id,
+    GROUP_CONCAT(p.pago_id ORDER BY p.fecha) AS ids_pagos,
+    e.nombre,
+    e.apellidos,
+    GROUP_CONCAT(p.mes_pago ORDER BY p.fecha SEPARATOR ', ') AS meses_pagos,
+    CONCAT(c.nombre, ' - ', n.nombre) AS carrera_nivel
+FROM matricula m
+INNER JOIN estudiante_carrera ec
+    ON m.estudiante_carrera_id = ec.estudiante_carrera_id
+INNER JOIN estudiante e
+    ON ec.estudiante_id = e.estudiante_id
+INNER JOIN carrera c
+    ON ec.carrera_id = c.carrera_id
+INNER JOIN nivel n
+    ON c.nivel_id = n.nivel_id
+INNER JOIN pago p
+    ON m.matricula_id = p.matricula_id
+GROUP BY m.matricula_id;

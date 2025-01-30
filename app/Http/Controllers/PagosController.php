@@ -31,33 +31,36 @@ class PagosController extends Controller
     }
     public function lista()
     {
-        $pago = Pagos::with([
+        $pagos = pagos::with([
             'matricula.estudianteCarrera.estudiante',
             'matricula.estudianteCarrera.carrera.nivel'
         ])->get();
 
-        $totalPagos = $pago->sum('monto');
+        // Agrupar y transformar los datos
+        $pagosAgrupados = $pagos->groupBy('matricula_id')->map(function ($grupo) {
+            $primerPago = $grupo->first();
+            $matricula = $primerPago->matricula;
+            $estudiante = $matricula->estudianteCarrera->estudiante;
+            $carrera = $matricula->estudianteCarrera->carrera;
+            $string_modulos =  $grupo->sortBy('fecha')->pluck('mes_pago')->filter()->join(', ');
+            $array_modulos = explode(', ', $string_modulos);
 
-        // Convertimos la colección a un formato más conveniente para la vista
-        $pagoConDetalles = $pago->map(function ($pagoItem) {
             return [
-                'id' => $pagoItem->pago_id,
-                'matricula_id' => $pagoItem->matricula->id, // Agregar el ID de matrícula
-                'estudiante' => $pagoItem->matricula->estudianteCarrera->estudiante,
-                'carrera' => $pagoItem->matricula->estudianteCarrera->carrera,
-                'nivel' => $pagoItem->matricula->estudianteCarrera->carrera->nivel,
-                'meses_pagados' => explode(',', $pagoItem->mes_pago), // Convertir los meses en un array
-                'concepto' => $pagoItem->concepto,
-                'fecha' => $pagoItem->fecha,
-                'monto' => $pagoItem->monto
+                'matricula_id' => $matricula->matricula_id,
+                'ids_pagos' => $grupo->pluck('pago_id')->join(', '),
+                'nombre' => $estudiante->nombre,
+                'apellidos' => $estudiante->apellidos,
+                'meses_pagos' => array_map(function($item) {
+                    return (int) str_replace('Mod ', '', $item);
+                }, $array_modulos),
+                'carrera_nivel' => $carrera->nombre . ' - ' . $carrera->nivel->nombre,
+                'duracion_carrera' => $carrera->duracion_meses,
+                'total_pagado' => $grupo->sum('monto')
             ];
-        });
+        })->values();
+        $totalPagos = $pagosAgrupados->sum('total_pagado');
 
-        // Agrupar los pagos por el id de matricula
-        $pagosAgrupados = $pagoConDetalles->groupBy('matricula_id');
-
-
-        return view('pagos.lista', compact('pagoConDetalles','totalPagos'));
+        return view('pagos.lista', compact('pagosAgrupados', 'totalPagos'));
     }
 
     public function search(Request $request)
@@ -188,7 +191,7 @@ class PagosController extends Controller
         $nivel = $pago->matricula->estudianteCarrera->carrera->nivel;
         $mesesPagados = $pago->meses_pagados;
 
-        return view('pagos.print', compact('pago', 'estudiante', 'carrera','mesesPagados', 'nivel'));
+        return view('pagos.print', compact('pago', 'estudiante', 'carrera', 'mesesPagados', 'nivel'));
     }
 
     /**
