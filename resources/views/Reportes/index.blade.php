@@ -16,7 +16,7 @@
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center flex-column">
                     <h4 class="text-success mb-3 font-weight-bold">
-                        Bs {{ number_format($totalPagos, 2) }} <!-- Formateo de moneda con 2 decimales -->
+                        Bs {{ number_format($totalPagos, 2) -number_format($totalegresos, 2)  }} <!-- Formateo de moneda con 2 decimales -->
                     </h4>
                     <p class="text-muted">Total acumulado de pagos en caja</p>
                 </div>
@@ -70,7 +70,7 @@
                                         <td>{{$pago['detalle']}}</td>
                                         <td>{{$pago['ingreso']}}</td>
                                         <td>
-                                         
+
                                             <a href="{{ route('pagos.show', ['pago' => $pago['id']]) }}"
                                             class="btn btn-success btn-sm">Ver</a>
                                         </td>

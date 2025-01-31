@@ -35,7 +35,7 @@ class PagosController extends Controller
             'matricula.estudianteCarrera.estudiante',
             'matricula.estudianteCarrera.carrera.nivel'
         ])->get();
-
+        $carreras = Carreras::with('nivel')->get();
         // Agrupar y transformar los datos
         $pagosAgrupados = $pagos->groupBy('matricula_id')->map(function ($grupo) {
             $primerPago = $grupo->first();
@@ -48,6 +48,7 @@ class PagosController extends Controller
             return [
                 'matricula_id' => $matricula->matricula_id,
                 'ids_pagos' => $grupo->pluck('pago_id')->join(', '),
+                'carrera_id' => $carrera->carrera_id,
                 'nombre' => $estudiante->nombre,
                 'apellidos' => $estudiante->apellidos,
                 'meses_pagos' => array_map(function($item) {
@@ -60,7 +61,7 @@ class PagosController extends Controller
         })->values();
         $totalPagos = $pagosAgrupados->sum('total_pagado');
 
-        return view('pagos.lista', compact('pagosAgrupados', 'totalPagos'));
+        return view('pagos.lista', compact('pagosAgrupados', 'totalPagos','carreras'));
     }
 
     public function search(Request $request)

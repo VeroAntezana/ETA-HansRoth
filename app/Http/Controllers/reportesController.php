@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Egreso;
 use App\Models\pagos;
 use Illuminate\Http\Request;
 
@@ -21,6 +22,7 @@ class reportesController extends Controller
         ])->get();
 
         $totalPagos = $pago->sum('monto');
+        $totalegresos  = Egreso::sum('monto');
 
         // Convertimos la colección a un formato más conveniente para la vista
         $pagoConDetalles = $pago->map(function ($pago) {
@@ -43,7 +45,7 @@ class reportesController extends Controller
             ];
         });
 
-        return view('Reportes.index', compact('pagoConDetalles', 'totalPagos'));
+        return view('Reportes.index', compact('pagoConDetalles', 'totalPagos','totalegresos'));
     }
 
     /**

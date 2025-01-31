@@ -97,6 +97,8 @@ JOIN
 JOIN
     nivel n ON c.nivel_id = n.nivel_id;
 
+
+
 SELECT
     m.matricula_id,
     GROUP_CONCAT(p.pago_id ORDER BY p.fecha) AS ids_pagos,

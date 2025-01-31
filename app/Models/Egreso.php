@@ -8,10 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Egreso extends Model
 {
     use HasFactory;
+    protected $table = 'egreso';
+
+
+    protected $primaryKey = 'egreso_id';
     protected $fillable = [
         'descripcion',
-        'fecha_inicio',
-        'fecha_fin',
+        'fecha',
+        'monto',
+        'responsable',
         'gestion_id',
     ];
 
