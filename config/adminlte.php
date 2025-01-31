@@ -526,12 +526,12 @@ return [
 
                 [
                     'text' => 'INGRESOS',
-                    'url'  => 'Reportes',
+                    'url'  => 'reportes',
                     'icon' => 'fas fa-fw fas fa-file-invoice-dollar'
                 ],
                 [
                     'text'    => 'EGRESOS',
-                    'url'     => '#',
+                    'url'     => 'reportes/index-egreso',
                     'icon'    => 'fas fa-fw fas fa-wallet'
                 ],
             ],

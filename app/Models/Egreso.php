@@ -13,10 +13,10 @@ class Egreso extends Model
 
     protected $primaryKey = 'egreso_id';
     protected $fillable = [
-        'descripcion',
+        'nombre',
         'fecha',
         'monto',
-        'responsable',
+        'concepto',
         'gestion_id',
     ];
 
