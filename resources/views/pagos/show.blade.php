@@ -60,7 +60,7 @@
                                         <label for="monto" class="font-weight-bold">Monto:</label>
                                         <div class="input-group">
                                             <div class="input-group-prepend">
-                                                <span class="input-group-text">$</span>
+                                                <span class="input-group-text">Bs</span>
                                             </div>
                                             <input type="text" class="form-control bg-light" id="monto" name="monto" 
                                                 value="{{ $pago->monto }}" readonly>

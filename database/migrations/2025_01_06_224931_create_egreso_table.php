@@ -15,10 +15,10 @@ class CreateEgresoTable extends Migration
     {
         Schema::create('egreso', function (Blueprint $table) {
             $table->integer('egreso_id', true);
-            $table->text('descripcion');
+            $table->text('nombre');
             $table->date('fecha');
             $table->decimal('monto', 10);
-            $table->string('responsable');
+            $table->string('concepto');
             $table->integer('gestion_id')->index('gestion_id');
         });
     }

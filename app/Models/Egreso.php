@@ -9,9 +9,10 @@ class Egreso extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'descripcion',
-        'fecha_inicio',
-        'fecha_fin',
+        'nombre',
+        'fecha',
+        'monto',
+        'concepto',
         'gestion_id',
     ];
 
