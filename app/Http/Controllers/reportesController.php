@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Egreso;
 use App\Models\pagos;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class reportesController extends Controller
 {
@@ -45,7 +49,7 @@ class reportesController extends Controller
             ];
         });
 
-        return view('Reportes.index', compact('pagoConDetalles', 'totalPagos','totalegresos'));
+        return view('Reportes.index', compact('pagoConDetalles', 'totalPagos', 'totalegresos'));
     }
 
     /**
@@ -58,7 +62,8 @@ class reportesController extends Controller
         //
     }
 
-    public function index_egreso() {
+    public function index_egreso()
+    {
         return view('reportes.index-egreso');
     }
     /**
@@ -115,5 +120,138 @@ class reportesController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    public function exportToExcel(Request $request)
+    {
+        // Validar las fechas
+        $request->validate([
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+        ]);
+
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+
+        // Obtener los pagos dentro del rango de fechas
+        $pagos = pagos::with([
+            'matricula.estudianteCarrera.estudiante',
+            'matricula.estudianteCarrera.carrera.nivel'
+        ])
+            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->get();
+
+        // Crear los datos de la primera tabla (detalles de pagos)
+        $datosPagos = $pagos->map(function ($pago) {
+            $estudiante = $pago->matricula->estudianteCarrera->estudiante;
+            $carrera = $pago->matricula->estudianteCarrera->carrera;
+            $nivel = $carrera->nivel;
+
+            return [
+                'Recibo' => $pago->pago_id,
+                'Fecha de Pago' => $pago->fecha,
+                'Detalle' => sprintf(
+                    "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
+                    $estudiante->nombre,
+                    $estudiante->apellidos,
+                    $pago->mes_pago,
+                    $carrera->nombre,
+                    $nivel->nombre
+                ),
+                'Ingreso' => $pago->monto,
+            ];
+        });
+
+        // Calcular totales para la segunda tabla
+        $montoTotalPagos = pagos::sum('monto'); // Total de todos los pagos
+        $montoPagosMesActual = $pagos->sum('monto'); // Total de pagos en el rango actual
+        $montoPagosSinMesActual = $montoTotalPagos - $montoPagosMesActual; // Total sin contar el rango actual
+        $montoEgresosMesActual = Egreso::whereBetween('fecha', [$fechaInicio, $fechaFin])->sum('monto'); // Egresos del rango actual
+        $totalCaja = ($montoPagosSinMesActual + $montoPagosMesActual) - $montoEgresosMesActual;
+
+        // Crear los datos de la segunda tabla (totales)
+        $datosTotales = collect([
+            [
+                'Titulo' => 'Monto Total de Pagos',
+                'Valor' => $montoTotalPagos,
+            ],
+            [
+                'Titulo' => 'Monto Total del Mes Anterior',
+                'Valor' => $montoPagosSinMesActual,
+            ],
+            [
+                'Titulo' => 'Monto Total de Ingresos (Mes Actual)',
+                'Valor' => $montoPagosMesActual,
+            ],
+            [
+                'Titulo' => 'Monto Total de Egresos (Mes Actual)',
+                'Valor' => $montoEgresosMesActual,
+            ],
+            [
+                'Titulo' => 'Total en Caja',
+                'Valor' => $totalCaja,
+            ],
+        ]);
+
+        // Exportar a Excel con dos tablas
+        return Excel::download(new class($datosPagos, $datosTotales) implements FromCollection, WithMultipleSheets {
+            private $pagos;
+            private $totales;
+
+            public function __construct($pagos, $totales)
+            {
+                $this->pagos = $pagos;
+                $this->totales = $totales;
+            }
+
+            public function collection()
+            {
+                return $this->pagos;
+            }
+
+            public function sheets(): array
+            {
+                return [
+                    new class($this->pagos) implements FromCollection, WithHeadings {
+                        private $pagos;
+
+                        public function __construct($pagos)
+                        {
+                            $this->pagos = $pagos;
+                        }
+
+                        public function collection()
+                        {
+                            return $this->pagos;
+                        }
+
+                        public function headings(): array
+                        {
+                            return ['Recibo', 'Fecha de Pago', 'Detalle', 'Ingreso'];
+                        }
+                    },
+
+                    // Segunda hoja
+                    new class($this->totales) implements FromCollection, WithHeadings {
+                        private $totales;
+
+                        public function __construct($totales)
+                        {
+                            $this->totales = $totales;
+                        }
+
+                        public function collection()
+                        {
+                            return $this->totales;
+                        }
+
+                        public function headings(): array
+                        {
+                            return ['Título', 'Valor'];
+                        }
+                    },
+                ];
+            }
+        }, 'ReportePagos.xlsx');
     }
 }

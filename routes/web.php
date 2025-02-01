@@ -40,8 +40,9 @@ Route::resource('estudiantes',EstudiantesController::class);
 
 Route::post('/estudiantes/create/matricular', [EstudiantesController::class, 'MatricularEstudianteAntiguo'])->name('estudiantes.matricular');
 
-Route::resource('Reportes',reportesController::class);
+Route::resource('reportes',reportesController::class);
 Route::get('/reportes/index-egreso', [reportesController::class, 'index_egreso'])->name('reportes.index-egreso');
+Route::post('/exportar-excel', [reportesController::class, 'exportToExcel'])->name('reportes.export');
 
 
 
