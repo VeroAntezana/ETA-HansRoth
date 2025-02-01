@@ -44,6 +44,10 @@ Route::post('/estudiantes/create/matricular', [EstudiantesController::class, 'Ma
 Route::resource('reportes',reportesController::class);
 Route::get('/reportes/index-egreso', [reportesController::class, 'index_egreso'])->name('egresos.lista');
 Route::resource('egresos', EgresoController::class);
+Route::resource('reportes',reportesController::class);
+Route::get('/reportes/index-egreso', [reportesController::class, 'index_egreso'])->name('reportes.index-egreso');
+Route::post('/exportar-excel', [reportesController::class, 'exportToExcel'])->name('reportes.export');
+
 
 
 

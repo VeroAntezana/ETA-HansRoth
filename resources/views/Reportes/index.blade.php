@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', 'pagos')
+@section('title', 'Pagos')
 
 @section('content')
     <section class="content">
@@ -16,38 +16,47 @@
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center flex-column">
                     <h4 class="text-success mb-3 font-weight-bold">
-                        Bs {{ number_format($totalPagos, 2) -number_format($totalegresos, 2)  }} <!-- Formateo de moneda con 2 decimales -->
+                        Bs {{ number_format($totalPagos - $totalegresos, 2) }} <!-- Formateo de moneda con 2 decimales -->
                     </h4>
                     <p class="text-muted">Total acumulado de pagos en caja</p>
                 </div>
             </div>
 
             <div class="card">
-
                 <div class="card-header justify-content-between">
                     <div class="row justify-content-between">
-                        <div class="col-xs-4 my-auto">
+                        <div class="col-md-4 my-auto">
                             <h3 class="card-title my-auto">
                                 <strong>LISTA DE PAGOS</strong>
                                 <a class="btn" href="{{ route('pagos.lista') }}">
                                     <i class="fas fa-sync fa-md fa-fw"></i>
                                 </a>
                             </h3>
+                            <form action="{{ route('reportes.export') }}" method="POST" id="exportForm">
+                                @csrf
+                                <div class="d-flex mb-3">
+                                    <div class="form-group mr-2">
+                                        <label for="fecha_inicio">Fecha de Inicio:</label>
+                                        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="fecha_fin">Fecha de Fin:</label>
+                                        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary ml-4 align-self-end">Exportar a Excel</button>
+                                </div>
+                            </form>
                         </div>
 
-                        <div class="col-xs">
+                        <div class="col-md-auto">
                             <a href="{{ route('pagos.index') }}" class="btn btn-primary">Nuevo</a>
                         </div>
-
-
                     </div>
-
                 </div>
 
                 <div class="card-body p-0">
-
-                    <table class="table table-hover table-head-fixed">
-                        <thead class="table-light ">
+                    <table class="table table-hover table-head-fixed" id="pagosTable">
+                        <thead class="table-light">
                             <tr>
                                 <th>#</th>
                                 <th>Fecha</th>
@@ -55,24 +64,19 @@
                                 <th>Detalles</th>
                                 <th>Ingreso</th>
                                 <th>OPCIONES</th>
-
                             </tr>
                         </thead>
-
-
                         <tbody>
                             @if (count($pagoConDetalles) > 0)
                                 @foreach ($pagoConDetalles as $pago)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td>{{ $pago['fecha']}}</td>
-                                        <td>{{$pago['id']}}</td>
-                                        <td>{{$pago['detalle']}}</td>
-                                        <td>{{$pago['ingreso']}}</td>
+                                        <td>{{ $pago['fecha'] }}</td>
+                                        <td>{{ $pago['id'] }}</td>
+                                        <td>{{ $pago['detalle'] }}</td>
+                                        <td>{{ number_format($pago['ingreso'], 2) }}</td>
                                         <td>
-
-                                            <a href="{{ route('pagos.show', ['pago' => $pago['id']]) }}"
-                                            class="btn btn-success btn-sm">Ver</a>
+                                            <a href="{{ route('pagos.show', ['pago' => $pago['id']]) }}" class="btn btn-success btn-sm">Ver</a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -82,26 +86,36 @@
                                 </tr>
                             @endif
                         </tbody>
-
-
-
-
                     </table>
                 </div>
-
             </div>
         </div>
-
     </section>
 @stop
 
 @section('js')
     <script>
-        function confirmarEliminacion(estudianteId) {
-            if (confirm('¿Estás seguro de que deseas eliminar esta carrera?')) {
-                // Si el usuario hace clic en "Aceptar", redirige al controlador para eliminar el nivel
-                window.location.href = '{{ url('pagos') }}/' + carreraId;
+        document.getElementById('fecha_inicio').addEventListener('change', filterTable);
+        document.getElementById('fecha_fin').addEventListener('change', filterTable);
+
+        function filterTable() {
+            const startDate = document.getElementById('fecha_inicio').value;
+            const endDate = document.getElementById('fecha_fin').value;
+            const table = document.getElementById('pagosTable');
+            const rows = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < rows.length; i++) { // Skip header row
+                const cells = rows[i].getElementsByTagName('td');
+                const rowDate = cells[1].innerText;
+
+                if (startDate && endDate) {
+                    const isInRange = new Date(rowDate) >= new Date(startDate) && new Date(rowDate) <= new Date(endDate);
+                    rows[i].style.display = isInRange ? '' : 'none';
+                } else {
+                    rows[i].style.display = '';
+                }
             }
         }
     </script>
 @stop
+
