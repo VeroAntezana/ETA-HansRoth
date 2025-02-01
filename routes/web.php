@@ -7,6 +7,7 @@ use App\Http\Controllers\EstudiantesController;
 use App\Http\Controllers\PagosController;
 use App\Http\Controllers\GestionController;
 use App\Http\Controllers\reportesController;
+use App\Http\Controllers\EgresoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,9 +41,9 @@ Route::resource('estudiantes',EstudiantesController::class);
 
 Route::post('/estudiantes/create/matricular', [EstudiantesController::class, 'MatricularEstudianteAntiguo'])->name('estudiantes.matricular');
 
-Route::resource('Reportes',reportesController::class);
-Route::get('/reportes/index-egreso', [reportesController::class, 'index_egreso'])->name('reportes.index-egreso');
-
+Route::resource('reportes',reportesController::class);
+Route::get('/reportes/index-egreso', [reportesController::class, 'index_egreso'])->name('egresos.lista');
+Route::resource('egresos', EgresoController::class);
 
 
 

@@ -58,9 +58,7 @@ class reportesController extends Controller
         //
     }
 
-    public function index_egreso() {
-        return view('reportes.index-egreso');
-    }
+   
     /**
      * Store a newly created resource in storage.
      *

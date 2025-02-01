@@ -1,0 +1,85 @@
+@extends('adminlte::page')
+
+@section('content')
+<section class="content">
+    <div class="container-fluid p-4">
+        <div class="card">
+            <div class="card-header justify-content-between">
+                <div class="row justify-content-between align-items-center">
+                    <div class="col">
+                        <h3 class="card-title m-0">
+                            <strong>LISTA DE EGRESOS</strong>
+                            <a class="btn" href="{{ route('egresos.index') }}">
+                                <i class="fas fa-sync fa-md fa-fw"></i>
+                            </a>
+                        </h3>
+                    </div>
+                    <div class="col text-right">
+                        <a href="{{ route('egresos.create') }}" class="btn btn-primary">Nuevo</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-0">
+                <table class="table table-hover table-head-fixed">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Fecha</th>
+                            <th>Nombre</th>
+                            <th>Concepto</th>
+                            <th>Monto</th>
+                            <th>OPCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($egresos as $index => $egreso)
+                        <tr>
+                            <td>{{ $index + 1 }}</td>
+                            <td>{{ \Carbon\Carbon::parse($egreso->fecha)->format('d/m/Y H:i') }}</td>
+                            <td>{{ $egreso->nombre }}</td>
+                            <td>{{ $egreso->concepto }}</td>
+                            <td>Bs {{ number_format($egreso->monto, 2) }}</td>
+                            <!-- En la sección de opciones de la tabla -->
+                            <td>
+                                <div class="btn-group">
+
+                                <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $egreso->egreso_id }}">Editar </button>
+                                <div class="modal fade" id="editModal{{ $egreso->egreso_id }}" tabindex="-1">
+                                        <div class="modal-dialog modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Editar Egreso</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    @include('partials.egresos.form_edit', ['egreso' => $egreso, 'gestiones' => $gestiones])
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <form action="{{ route('egresos.destroy', $egreso) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este resgistro?')">
+                                            Eliminar
+                                        </button>
+
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="6" class="text-center">No se encontraron egresos.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</section>
+@stop

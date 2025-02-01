@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Egreso;
 use Illuminate\Http\Request;
+use App\Models\Gestion;
 
 class EgresoController extends Controller
 {
@@ -14,7 +15,9 @@ class EgresoController extends Controller
      */
     public function index()
     {
-        //
+        $egresos = Egreso::orderBy('fecha', 'desc')->get();
+        $gestiones = Gestion::all();
+        return view('egresos.index', compact('egresos', 'gestiones'));
     }
 
     /**
@@ -24,9 +27,9 @@ class EgresoController extends Controller
      */
     public function create()
     {
-        //
+        $gestiones = Gestion::all();
+        return view('egresos.create', compact('gestiones',));
     }
-
     /**
      * Store a newly created resource in storage.
      *
@@ -35,7 +38,16 @@ class EgresoController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'nombre' => 'required',
+            'fecha' => 'required|date',
+            'monto' => 'required|numeric',
+            'gestion_id' => 'required',
+            'concepto' => 'required'
+        ]);
+
+        Egreso::create($request->all());
+        return redirect()->route('egresos.index')->with('success', 'Egreso registrado exitosamente');
     }
 
     /**
@@ -57,7 +69,8 @@ class EgresoController extends Controller
      */
     public function edit(Egreso $egreso)
     {
-        //
+        $gestiones = Gestion::all();
+        return view('egresos.edit', compact('egreso', 'gestiones'));
     }
 
     /**
@@ -67,9 +80,17 @@ class EgresoController extends Controller
      * @param  \App\Models\Egreso  $egreso
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Egreso $egreso)
+    public function update(Request $request, $egreso_id)
     {
-        //
+        $egreso = Egreso::findOrFail($egreso_id);
+        $egreso->update($request->validate([
+            'nombre' => 'required',
+            'fecha' => 'required|date',
+            'monto' => 'required|numeric',
+            'gestion_id'=> 'required',
+            'concepto' => 'required'                       
+        ]));
+        return redirect()->route('egresos.index')->with('success', ' actualizado exitosamente');
     }
 
     /**
@@ -80,6 +101,7 @@ class EgresoController extends Controller
      */
     public function destroy(Egreso $egreso)
     {
-        //
+        $egreso->delete();
+        return redirect()->route('egresos.index')->with('success', 'Egreso eliminado exitosamente');
     }
 }

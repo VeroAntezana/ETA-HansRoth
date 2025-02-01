@@ -17,7 +17,7 @@ class Egreso extends Model
         'fecha',
         'monto',
         'concepto',
-        'gestion_id',
+        'gestion_id'
     ];
 
     public function gestion()

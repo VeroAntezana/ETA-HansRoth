@@ -531,7 +531,7 @@ return [
                 ],
                 [
                     'text'    => 'EGRESOS',
-                    'url'     => 'reportes/index-egreso',
+                    'url'     => 'egresos',
                     'icon'    => 'fas fa-fw fas fa-wallet'
                 ],
             ],
