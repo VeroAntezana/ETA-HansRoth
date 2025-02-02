@@ -15,10 +15,20 @@
                     </a>
                 </div>
                 <div class="card-body d-flex justify-content-center align-items-center flex-column">
-                    <h4 class="text-success mb-3 font-weight-bold">
-                        Bs {{ number_format($totalPagos - $totalegresos, 2) }} <!-- Formateo de moneda con 2 decimales -->
-                    </h4>
-                    <p class="text-muted">Total acumulado de pagos en caja</p>
+                    @if (number_format($totalPagos - $totalegresos, 2) > 0)
+                        <h4 class="text-success mb-3 font-weight-bold">
+                            Bs {{ number_format($totalPagos - $totalegresos, 2) }}
+                            <!-- Formateo de moneda con 2 decimales -->
+                        </h4>
+                        <p class="text-muted">Total acumulado de pagos en caja</p>
+                    @else
+                        <h4 class="text-danger mb-3 font-weight-bold">
+                            Bs {{ number_format($totalPagos - $totalegresos, 2) }}
+                            <!-- Formateo de moneda con 2 decimales -->
+                        </h4>
+                        <p class="text-muted">Total acumulado de pagos en caja</p>
+                    @endif
+
                 </div>
             </div>
 
@@ -43,7 +53,8 @@
                                         <label for="fecha_fin">Fecha de Fin:</label>
                                         <input type="date" name="fecha_fin" id="fecha_fin" class="form-control">
                                     </div>
-                                    <button type="submit" class="btn btn-primary ml-4 align-self-end">Exportar a Excel</button>
+                                    <button type="submit" class="btn btn-primary ml-4 align-self-end">Exportar a
+                                        Excel</button>
                                 </div>
                             </form>
                         </div>
@@ -76,7 +87,8 @@
                                         <td>{{ $pago['detalle'] }}</td>
                                         <td>{{ number_format($pago['ingreso'], 2) }}</td>
                                         <td>
-                                            <a href="{{ route('pagos.show', ['pago' => $pago['id']]) }}" class="btn btn-success btn-sm">Ver</a>
+                                            <a href="{{ route('pagos.show', ['pago' => $pago['id']]) }}"
+                                                class="btn btn-success btn-sm">Ver</a>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -118,4 +130,3 @@
         }
     </script>
 @stop
-

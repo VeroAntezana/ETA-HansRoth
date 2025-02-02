@@ -135,6 +135,7 @@ class PagosController extends Controller
     public function store(Request $request)
 
     {
+        
         $request->validate([
             'concepto' => 'required',
             'fecha' => 'required',
