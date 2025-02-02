@@ -3,13 +3,13 @@
 @section('title', 'ETA')
 
 @section('content_header')
-    <h1>ETA HANS ROTH</h1>
+    <h1></h1>
 @stop
 
 @section('content')
-    <p>BIENVENIDOS A ETA HANS ROTH FE Y ALEGRIA</p>
+    <p></p>
     <div class="d-flex justify-content-center">
-        <img src="vendor/adminlte/dist/img/eta.jpg" alt="Iglesia" class="img-fluid small-image">
+        <img src="vendor/adminlte/dist/img/eta.png" alt="Iglesia" class="img-fluid small-image">
     </div>
 @stop
 
@@ -17,12 +17,10 @@
     <link rel="stylesheet" href="/css/admin_custom.css">
     <style>
         .small-image {
-            width: 40%; /* Ajusta el valor según tus necesidades */
+            width: 40%;
         }
     </style>
 
 @stop
 
-@section('js')
-    <script> console.log('Hi!'); </script>
-@stop
+
