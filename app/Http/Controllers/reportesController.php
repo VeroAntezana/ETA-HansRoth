@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
+
 class reportesController extends Controller
 {
     /**
@@ -62,7 +63,8 @@ class reportesController extends Controller
         //
     }
 
-    public function index_egreso() {
+    public function index_egreso()
+    {
         return view('reportes.index-egreso');
     }
     /**
