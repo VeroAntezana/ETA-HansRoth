@@ -231,23 +231,23 @@ class EstudiantesController extends Controller
     {
         try {
             DB::beginTransaction();
-            
+
             $estudiante = Estudiantes::findOrFail($id);
-            
+
             // Delete matriculas first
             DB::table('matricula')
                 ->join('estudiante_carrera', 'matricula.estudiante_carrera_id', '=', 'estudiante_carrera.estudiante_carrera_id')
                 ->where('estudiante_carrera.estudiante_id', $id)
                 ->delete();
-                
+
             // Delete estudiante_carrera records
             DB::table('estudiante_carrera')
                 ->where('estudiante_id', $id)
                 ->delete();
-                
+
             // Finally delete the estudiante
             $estudiante->delete();
-            
+
             DB::commit();
             return redirect()->route('estudiantes.index')->with('success', 'Estudiante eliminado exitosamente');
         } catch (\Exception $e) {
@@ -276,24 +276,31 @@ class EstudiantesController extends Controller
                 $nombreCompleto = "{$estudiante->nombre} {$estudiante->apellidos}";
                 $carreras = $estudiante->estudianteCarreras->map(function ($estudianteCarrera) {
                     $carrera = $estudianteCarrera->carrera;
+                    $duracionMeses = $carrera->duracion_meses;
                     $matriculas = $estudianteCarrera->matriculas;
 
                     return [
                         'id_carrera' => $carrera->carrera_id,
                         'nombre_carrera' => $carrera->nombre,
                         'nivel' => $carrera->nivel->nombre ?? 'Sin nivel',
-                        'matriculas' => $matriculas->map(function ($matricula) {
+                        'matriculas' => $matriculas->map(function ($matricula) use ($duracionMeses) {
                             $mesesPagados = $matricula->pagos->pluck('mes_pago')->unique();
-                            $modulos = $mesesPagados->map(function ($item) {
+                            $modulosPagados = $mesesPagados->map(function ($item) {
                                 return explode(', ', $item);
                             })->flatten()->unique(); // Meses ya pagados
-                            $todosLosMeses = collect(['Mod 1', 'Mod 2', 'Mod 3', 'Mod 4', 'Mod 5', 'Mod 6', 'Mod 7', 'Mod 8', 'Mod 9', 'Mod 10', 'Mod 11', 'Mod 12']);
-                            $mesesPendientes = $todosLosMeses->diff($modulos); // Filtro para obtener pendientes
+
+                            // Generar todos los meses esperados basados en la duración de la carrera
+                            $todosLosMeses = collect();
+                            for ($i = 1; $i <= $duracionMeses; $i++) {
+                                $todosLosMeses->push("Mod $i");
+                            }
+
+                            $mesesPendientes = $todosLosMeses->diff($modulosPagados); // Filtro para obtener pendientes
 
                             return [
                                 'id_matricula' => $matricula->matricula_id,
                                 'gestion' => $matricula->gestion->descripcion ?? 'Sin gestión',
-                                'meses_pagados' => $modulos->values(), // Meses ya pagados
+                                'meses_pagados' => $modulosPagados->values(), // Meses ya pagados
                                 'meses_pendientes' => $mesesPendientes->values(), // Meses pendientes
                             ];
                         }),
