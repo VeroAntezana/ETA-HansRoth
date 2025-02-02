@@ -24,7 +24,7 @@
                 <table class="table table-hover table-head-fixed">
                     <thead class="table-light">
                         <tr>
-                            <th>#</th>
+                            <th>#-Recibo</th>
                             <th>Fecha</th>
                             <th>Nombre</th>
                             <th>Concepto</th>
@@ -35,17 +35,35 @@
                     <tbody>
                         @forelse($egresos as $index => $egreso)
                         <tr>
-                            <td>{{ $index + 1 }}</td>
+                            <td>{{ $egreso->egreso_id}}</td>
                             <td>{{ \Carbon\Carbon::parse($egreso->fecha)->format('d/m/Y H:i') }}</td>
                             <td>{{ $egreso->nombre }}</td>
                             <td>{{ $egreso->concepto }}</td>
                             <td>Bs {{ number_format($egreso->monto, 2) }}</td>
                             <!-- En la sección de opciones de la tabla -->
                             <td>
-                                <div class="btn-group">
+                                <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#showModal{{ $egreso->egreso_id }}">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <div class="modal fade" id="showModal{{ $egreso->egreso_id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Detalles del Egreso</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                @include('partials.egresos.form_show', ['egreso' => $egreso])
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                             
 
-                                <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $egreso->egreso_id }}">Editar </button>
-                                <div class="modal fade" id="editModal{{ $egreso->egreso_id }}" tabindex="-1">
+                                    <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $egreso->egreso_id }}">Editar </button>
+                                    <div class="modal fade" id="editModal{{ $egreso->egreso_id }}" tabindex="-1">
                                         <div class="modal-dialog modal-lg">
                                             <div class="modal-content">
                                                 <div class="modal-header">
@@ -68,7 +86,7 @@
                                         </button>
 
                                     </form>
-                                </div>
+                                
                             </td>
                         </tr>
                         @empty

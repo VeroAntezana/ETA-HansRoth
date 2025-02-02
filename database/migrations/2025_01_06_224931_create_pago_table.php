@@ -17,7 +17,7 @@ class CreatePagoTable extends Migration
             $table->integer('pago_id', true);
             $table->integer('matricula_id')->index('matricula_id');
             $table->string('concepto', 255);
-            $table->date('fecha');
+            $table->dateTime('fecha');
             $table->decimal('monto', 10);
             $table->string('mes_pago', 50)->nullable();
         });

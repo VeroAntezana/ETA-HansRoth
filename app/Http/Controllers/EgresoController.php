@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Egreso;
 use Illuminate\Http\Request;
 use App\Models\Gestion;
+use Carbon\Carbon;
 
 class EgresoController extends Controller
 {
@@ -15,7 +16,7 @@ class EgresoController extends Controller
      */
     public function index()
     {
-        $egresos = Egreso::orderBy('fecha', 'desc')->get();
+        $egresos = Egreso::all();
         $gestiones = Gestion::all();
         return view('egresos.index', compact('egresos', 'gestiones'));
     }
@@ -46,7 +47,9 @@ class EgresoController extends Controller
             'concepto' => 'required'
         ]);
 
-        Egreso::create($request->all());
+        $data = $request->all();
+        $data['fecha'] = Carbon::parse($request->fecha)->format('Y-m-d H:i:s');
+        Egreso::create($data);
         return redirect()->route('egresos.index')->with('success', 'Egreso registrado exitosamente');
     }
 
@@ -61,6 +64,11 @@ class EgresoController extends Controller
         //
     }
 
+    public function print($egreso_id)
+    {
+        $egreso = Egreso::findOrFail($egreso_id);
+        return view('egresos.print', compact('egreso'));
+    }
     /**
      * Show the form for editing the specified resource.
      *
@@ -87,8 +95,8 @@ class EgresoController extends Controller
             'nombre' => 'required',
             'fecha' => 'required|date',
             'monto' => 'required|numeric',
-            'gestion_id'=> 'required',
-            'concepto' => 'required'                       
+            'gestion_id' => 'required',
+            'concepto' => 'required'
         ]));
         return redirect()->route('egresos.index')->with('success', ' actualizado exitosamente');
     }

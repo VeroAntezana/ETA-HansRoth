@@ -47,6 +47,7 @@ Route::resource('egresos', EgresoController::class);
 Route::resource('reportes',reportesController::class);
 Route::get('/reportes/index-egreso', [reportesController::class, 'index_egreso'])->name('reportes.index-egreso');
 Route::post('/exportar-excel', [reportesController::class, 'exportToExcel'])->name('reportes.export');
+Route::get('egresos/print/{egreso_id}', [EgresoController::class, 'print'])->name('egresos.print');
 
 
 
