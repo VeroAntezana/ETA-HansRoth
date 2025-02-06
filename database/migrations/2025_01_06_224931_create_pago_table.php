@@ -19,7 +19,7 @@ class CreatePagoTable extends Migration
             $table->string('concepto', 255);
             $table->dateTime('fecha');
             $table->decimal('monto', 10);
-            $table->string('mes_pago', 50)->nullable();
+            $table->string('mes_pago', 255)->nullable();
         });
     }
 

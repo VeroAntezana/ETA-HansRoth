@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Recibo de Pago</title>
     <style>
@@ -72,6 +73,26 @@
             margin-left: 20px;
         }
 
+        .value.many-modules {
+            font-size: 10px;
+          
+            line-height: 1.1;
+            
+        }
+
+       
+        .details.compact {
+            margin: 10px 0;
+        }
+
+        .compact .row {
+            margin: 4px 0;
+        }
+
+        .compact .label {
+            font-size: 11px;
+        }
+
         .amount {
             margin: 20px 0;
             padding: 8px;
@@ -139,6 +160,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Primera copia -->
     <div class="container receipt-top">
@@ -231,7 +253,9 @@
 
             <div class="row">
                 <span class="label">Módulos Pagados:</span>
-                <span class="value">{{ $pago->mes_pago }}</span>
+                <span class="value {{ str_word_count($pago->mes_pago) > 5 ? 'many-modules' : '' }}">
+                    {{ $pago->mes_pago }}
+                </span>
             </div>
         </div>
 
@@ -258,4 +282,5 @@
         </div>
     </div>
 </body>
+
 </html>
