@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Egreso;
 use App\Models\pagos;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+
 
 class reportesController extends Controller
 {
@@ -26,8 +27,10 @@ class reportesController extends Controller
             'matricula.estudianteCarrera.carrera.nivel'
         ])->get();
 
-        $totalPagos = $pago->sum('monto');
+        $totalPagos = pagos::sum('monto');
+
         $totalegresos  = Egreso::sum('monto');
+
 
         // Convertimos la colección a un formato más conveniente para la vista
         $pagoConDetalles = $pago->map(function ($pago) {
@@ -138,14 +141,12 @@ class reportesController extends Controller
         ]);
 
         $fechaInicio = $request->input('fecha_inicio');
-        $fechaFin = $request->input('fecha_fin');
-
-        // Obtener los pagos dentro del rango de fechas
+        $fechaFin = $request->input('fecha_fin'); // Obtener los pagos dentro del rango de fechas
         $pagos = pagos::with([
             'matricula.estudianteCarrera.estudiante',
             'matricula.estudianteCarrera.carrera.nivel'
         ])
-            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])
             ->get();
 
         // Crear los datos de la primera tabla (detalles de pagos)
@@ -169,8 +170,15 @@ class reportesController extends Controller
 
             return [
                 'Recibo' => $pago->pago_id,
-                'Fecha de Pago' => $pago->fecha,
-                'Detalle' => $detalle,
+                'Fecha de Pago' => Carbon::parse($pago->fecha)->format('Y-m-d'),
+                'Detalle' => sprintf(
+                    "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
+                    $estudiante->nombre,
+                    $estudiante->apellidos,
+                    $pago->mes_pago,
+                    $carrera->nombre,
+                    $nivel->nombre
+                ),
                 'Ingreso' => $pago->monto,
             ];
         });
@@ -186,23 +194,39 @@ class reportesController extends Controller
         $montoEgresosMesActual = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto');
         $totalCaja = ($montoPagosSinMesActual + $montoPagosMesActual) - $montoEgresosMesActual;
 
+
         // Crear los datos de la segunda tabla (totales)
         $datosTotales = collect([
-            ['Titulo' => 'Monto Total de Pagos', 'Valor' => $montoTotalPagos],
-            ['Titulo' => 'Monto Total del Mes Anterior', 'Valor' => $montoPagosSinMesActual],
-            ['Titulo' => 'Monto Total de Ingresos (Mes Actual)', 'Valor' => $montoPagosMesActual],
-            ['Titulo' => 'Monto Total de Egresos (Mes Actual)', 'Valor' => $montoEgresosMesActual],
-            ['Titulo' => 'Total en Caja', 'Valor' => $totalCaja],
+            [
+                'Titulo' => 'Monto Total de Ingresos',
+                'Valor' => $montoTotalPagos,
+            ],
+            [
+                'Titulo' => 'Monto Total del Mes Anterior',
+                'Valor' =>  $montoPagosSinMesActual,
+            ],
+            [
+                'Titulo' => 'Monto Total de Ingresos (Mes Actual)',
+                'Valor' => $montoPagosMesActual,
+            ],
+            [
+                'Titulo' => 'Monto Total de Egresos (Mes Actual)',
+                'Valor' => $montoEgresosMesActual,
+            ],
+            [
+                'Titulo' => 'Total en Caja (Mes Actual)',
+                'Valor' => $totalCaja,
+            ],
         ]);
 
         // Obtener los egresos dentro del rango de fechas
-        $egresos = Egreso::whereBetween('fecha', [$fechaInicio, $fechaFin])->get();
+        $egresos = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->get();
 
         // Mapear datos de egresos para la tercera tabla
         $datosEgresos = $egresos->map(function ($egreso) {
             return [
                 'Recibo' => $egreso->egreso_id,
-                'Fecha' => $egreso->fecha,
+                'Fecha' => Carbon::parse($egreso->fecha)->format('Y-m-d'),
                 'Nombre' => $egreso->nombre,
                 'Concepto' => $egreso->concepto,
                 'Egreso' => $egreso->monto,
