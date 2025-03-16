@@ -152,7 +152,7 @@ class reportesController extends Controller
 
             return [
                 'Recibo' => $pago->pago_id,
-                'Fecha de Pago' => $pago->fecha,
+                'Fecha de Pago' => Carbon::parse($pago->fecha)->format('Y-m-d'),
                 'Detalle' => sprintf(
                     "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
                     $estudiante->nombre,
@@ -208,7 +208,7 @@ class reportesController extends Controller
         $datosEgresos = $egresos->map(function ($egreso) {
             return [
                 'Recibo' => $egreso->egreso_id,
-                'Fecha' => $egreso->fecha,
+                'Fecha' => Carbon::parse($egreso->fecha)->format('Y-m-d'),
                 'Nombre' => $egreso->nombre,
                 'Concepto' => $egreso->concepto,
                 'Egreso' => $egreso->monto,
