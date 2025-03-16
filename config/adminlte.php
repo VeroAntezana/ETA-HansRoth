@@ -501,7 +501,7 @@ return [
                 ],
                 [
                     'text'    => 'PAGO EXTRA',
-                    'url'     => '#',
+                    'url'     => 'pagos/extra',
                     'icon'    => 'fas fa-fw fas fa-hand-holding-usd'
                 ],
                 [
