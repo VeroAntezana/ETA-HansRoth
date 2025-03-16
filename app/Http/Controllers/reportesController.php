@@ -141,7 +141,7 @@ class reportesController extends Controller
             'matricula.estudianteCarrera.estudiante',
             'matricula.estudianteCarrera.carrera.nivel'
         ])
-            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])
             ->get();
 
         // Crear los datos de la primera tabla (detalles de pagos)
@@ -202,7 +202,7 @@ class reportesController extends Controller
         ]);
 
         // Obtener los egresos dentro del rango de fechas
-        $egresos = Egreso::whereBetween('fecha', [$fechaInicio, $fechaFin])->get();
+        $egresos = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->get();
 
         // Mapear datos de egresos para la tercera tabla con los campos exactos que necesitas
         $datosEgresos = $egresos->map(function ($egreso) {
