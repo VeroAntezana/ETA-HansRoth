@@ -14,11 +14,25 @@ class EgresoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $egresos = Egreso::all();
+        // Obtener fechas del formulario
+        $fechaInicio = $request->input('fecha_inicio');
+        $fechaFin = $request->input('fecha_fin');
+
+        // Consulta de egresos con filtro de fechas
+        $query = Egreso::query();
+
+        if ($fechaInicio && $fechaFin) {
+            $query->whereBetween('fecha', [
+                Carbon::parse($fechaInicio)->startOfDay(),
+                Carbon::parse($fechaFin)->endOfDay()
+            ]);
+        }
+        $egresos = $query->orderBy('fecha', 'desc')->get();
+        $totalEgresos = $query->sum('monto');
         $gestiones = Gestion::all();
-        return view('egresos.index', compact('egresos', 'gestiones'));
+        return view('egresos.index', compact('egresos', 'gestiones','totalEgresos'));
     }
 
     /**

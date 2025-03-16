@@ -19,6 +19,28 @@
                     </div>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4>Total de Egresos</h4>
+                    <h2 class="text-danger"><strong>Bs {{ number_format($totalEgresos, 2) }}</strong></h2>
+                    <p>Total acumulado de egresos</p>
+                </div>
+            </div>
+
+            <!-- Filtro de fechas -->
+            <div class="card-body">
+                <form method="GET" action="{{ route('egresos.index') }}" class="form-inline">
+                    <div class="form-group mx-2">
+                        <label for="fecha_inicio">Fecha Inicio: </label>
+                        <input type="date" class="form-control ml-2" name="fecha_inicio" value="{{ request('fecha_inicio') }}">
+                    </div>
+                    <div class="form-group mx-2">
+                        <label for="fecha_fin">Fecha Fin: </label>
+                        <input type="date" class="form-control ml-2" name="fecha_fin" value="{{ request('fecha_fin') }}">
+                    </div>
+                    <button type="submit" class="btn btn-success mx-2">Filtrar</button>
+                </form>
+            </div>
 
             <div class="card-body p-0">
                 <table class="table table-hover table-head-fixed">
@@ -60,33 +82,33 @@
                                         </div>
                                     </div>
                                 </div>
-                             
 
-                                    <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $egreso->egreso_id }}">Editar </button>
-                                    <div class="modal fade" id="editModal{{ $egreso->egreso_id }}" tabindex="-1">
-                                        <div class="modal-dialog modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title">Editar Egreso</h5>
-                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">&times;</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    @include('partials.egresos.form_edit', ['egreso' => $egreso, 'gestiones' => $gestiones])
-                                                </div>
+
+                                <button type="button" class="btn btn-warning btn-sm" data-toggle="modal" data-target="#editModal{{ $egreso->egreso_id }}">Editar </button>
+                                <div class="modal fade" id="editModal{{ $egreso->egreso_id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Editar Egreso</h5>
+                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                    <span aria-hidden="true">&times;</span>
+                                                </button>
+                                            </div>
+                                            <div class="modal-body">
+                                                @include('partials.egresos.form_edit', ['egreso' => $egreso, 'gestiones' => $gestiones])
                                             </div>
                                         </div>
                                     </div>
-                                    <form action="{{ route('egresos.destroy', $egreso) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este resgistro?')">
-                                            Eliminar
-                                        </button>
+                                </div>
+                                <form action="{{ route('egresos.destroy', $egreso) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de que deseas eliminar este resgistro?')">
+                                        Eliminar
+                                    </button>
 
-                                    </form>
-                                
+                                </form>
+
                             </td>
                         </tr>
                         @empty
