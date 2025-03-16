@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\carreras;
 use App\Models\Estudiantes;
+use App\Models\Matricula;
 use App\Models\niveles;
 use App\Models\pagos;
 use Illuminate\Http\Request;
@@ -30,43 +31,46 @@ class PagosController extends Controller
         return $pdf->stream();
     }
     public function lista()
-    {
-        $pagos = pagos::with([
-            'matricula.estudianteCarrera.estudiante',
-            'matricula.estudianteCarrera.carrera.nivel'
-        ])->whereNotNull('matricula_id') // Filtramos solo los pagos con matrícula
-            ->get();
+{
+    // Obtener todas las matrículas con sus relaciones
+    $matriculas = Matricula::with([
+        'estudianteCarrera.estudiante',
+        'estudianteCarrera.carrera.nivel',
+        'pagos'
+    ])->get();
 
-        $carreras = Carreras::with('nivel')->get();
+    // Obtener todas las carreras con su nivel
+    $carreras = Carreras::with('nivel')->get();
 
-        // Agrupar y transformar los datos
-        $pagosAgrupados = $pagos->groupBy('matricula_id')->map(function ($grupo) {
-            $primerPago = $grupo->first();
-            $matricula = $primerPago->matricula;
-            $estudiante = $matricula->estudianteCarrera->estudiante ?? null;
-            $carrera = $matricula->estudianteCarrera->carrera ?? null;
-            $nivel = $carrera->nivel ?? null;
+    // Transformar y agrupar los datos
+    $pagosAgrupados = $matriculas->map(function ($matricula) {
+        $estudiante = $matricula->estudianteCarrera->estudiante ?? null;
+        $carrera = $matricula->estudianteCarrera->carrera ?? null;
+        $nivel = $carrera->nivel ?? null;
+        $pagos = $matricula->pagos ?? collect(); // Si no hay pagos, usa una colección vacía
 
-            $string_modulos = $grupo->sortBy('fecha')->pluck('mes_pago')->filter()->join(', ');
-            $array_modulos = explode(', ', $string_modulos);
+        // Obtener los módulos pagados
+        $string_modulos = $pagos->sortBy('fecha')->pluck('mes_pago')->filter()->join(', ');
+        $array_modulos = explode(', ', $string_modulos);
 
-            return [
-                'matricula_id' => $matricula->matricula_id ?? null,
-                'ids_pagos' => $grupo->pluck('pago_id')->join(', '),
-                'carrera_id' => $carrera->carrera_id ?? null,
-                'nombre' => $estudiante->nombre ?? 'Desconocido',
-                'apellidos' => $estudiante->apellidos ?? '',
-                'meses_pagos' => array_map(fn($item) => (int) str_replace('Mod ', '', $item), $array_modulos),
-                'carrera_nivel' => $carrera ? ($carrera->nombre . ' - ' . $nivel->nombre) : 'N/A',
-                'duracion_carrera' => $carrera->duracion_meses ?? 0,
-                'total_pagado' => $grupo->sum('monto')
-            ];
-        })->values();
+        return [
+            'matricula_id' => $matricula->matricula_id ?? null,
+            'ids_pagos' => $pagos->pluck('pago_id')->join(', '),
+            'carrera_id' => $carrera->carrera_id ?? null,
+            'nombre' => $estudiante->nombre ?? 'Desconocido',
+            'apellidos' => $estudiante->apellidos ?? '',
+            'meses_pagos' => array_map(fn($item) => (int) str_replace('Mod ', '', $item), $array_modulos),
+            'carrera_nivel' => $carrera ? ($carrera->nombre . ' - ' . $nivel->nombre) : 'N/A',
+            'duracion_carrera' => $carrera->duracion_meses ?? 0,
+            'total_pagado' => $pagos->sum('monto')
+        ];
+    });
 
-        $totalPagos = $pagosAgrupados->sum('total_pagado');
+    $totalPagos = $pagosAgrupados->sum('total_pagado');
 
-        return view('pagos.lista', compact('pagosAgrupados', 'totalPagos', 'carreras'));
-    }
+    return view('pagos.lista', compact('pagosAgrupados', 'totalPagos', 'carreras'));
+}
+
 
 
     public function search(Request $request)

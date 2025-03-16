@@ -53,7 +53,7 @@ class reportesController extends Controller
 
             return [
                 'id' => $pago->pago_id,
-                'fecha' => $pago->fecha,
+                'fecha' => Carbon::parse($pago->fecha)->format('Y-m-d'),
                 'detalle' => $detalle,
                 'ingreso' => $pago->monto
             ];
