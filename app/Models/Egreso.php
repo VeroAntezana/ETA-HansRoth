@@ -19,7 +19,9 @@ class Egreso extends Model
         'concepto',
         'gestion_id'
     ];
-
+    protected $casts = [
+        'fecha' => 'datetime',
+    ];
     public function gestion()
     {
         return $this->belongsTo(Gestion::class,'gestion_id');

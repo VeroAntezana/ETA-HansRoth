@@ -37,6 +37,7 @@ Route::resource('pagos',PagosController::class);
 Route::get('getEstudianteInfo/{id}', [PagosController::class, 'getEstudianteInfo']);
 // Rutas específicas para niveles de carreras
 Route::get('estudiantes/{carrera}/{nivel}', [EstudiantesController::class, 'indexByNivel'])->name('estudiantes.indexByNivel');
+Route::get('estudiantes/export', [EstudiantesController::class, 'exportExcel'])->name('estudiantes.export');
 Route::resource('estudiantes',EstudiantesController::class);
 
 Route::post('/estudiantes/create/matricular', [EstudiantesController::class, 'MatricularEstudianteAntiguo'])->name('estudiantes.matricular');
@@ -47,6 +48,8 @@ Route::resource('egresos', EgresoController::class);
 Route::resource('reportes',reportesController::class);
 Route::get('/reportes/index-egreso', [reportesController::class, 'index_egreso'])->name('reportes.index-egreso');
 Route::post('/exportar-excel', [reportesController::class, 'exportToExcel'])->name('reportes.export');
+Route::get('egresos/print/{egreso_id}', [EgresoController::class, 'print'])->name('egresos.print');
+
 
 
 

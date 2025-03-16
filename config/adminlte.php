@@ -500,6 +500,11 @@ return [
                     'icon'    => 'fas fa-fw fas fa-hand-holding-usd'
                 ],
                 [
+                    'text'    => 'PAGO EXTRA',
+                    'url'     => '#',
+                    'icon'    => 'fas fa-fw fas fa-hand-holding-usd'
+                ],
+                [
                     'text' => 'LISTA GENERAL DE PAGOS',
                     'url'  => 'pagos/lista',
                     'icon' => 'fas fa-fw fas fa-align-justify',

@@ -10,6 +10,11 @@ use App\Models\Niveles;
 use App\Models\Matricula;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class EstudiantesController extends Controller
 {
@@ -318,5 +323,77 @@ class EstudiantesController extends Controller
             });
 
         return response()->json($resultado);
+    }
+
+
+    public function exportExcel(Request $request)
+    {
+        try {
+            $query = Estudiantes::with('carreras');
+
+            // Si se seleccionó una carrera específica
+            if ($request->carrera_id && $request->carrera_id !== 'todas') {
+                $query->whereHas('carreras', function ($q) use ($request) {
+                    $q->where('carrera.carrera_id', $request->carrera_id);
+                });
+            }
+
+            $estudiantes = $query->get();
+
+            $datosExcel = [];
+            foreach ($estudiantes as $estudiante) {
+                $carrerasNivel = [];
+                foreach ($estudiante->carreras as $carrera) {
+                    // Si es todas las carreras o es la carrera seleccionada
+                    if ($request->carrera_id === 'todas' || $carrera->carrera_id == $request->carrera_id) {
+                        $carrerasNivel[] = $carrera->nombre . ' - ' . optional($carrera->nivel)->nombre;
+                    }
+                }
+
+                $datosExcel[] = [
+                    'ID' => $estudiante->estudiante_id,
+                    'NOMBRES' => $estudiante->nombre,
+                    'APELLIDOS' => $estudiante->apellidos,
+                    'CARNET IDENTIDAD' => $estudiante->ci,
+                    'CARRERA-NIVEL' => implode(', ', $carrerasNivel)
+                ];
+            }
+
+            // Nombre del archivo según el filtro
+            $nombreArchivo = 'estudiantes';
+            if ($request->carrera_id && $request->carrera_id !== 'todas') {
+                $carrera = Carreras::find($request->carrera_id);
+                $nombreArchivo .= '_' . str_replace(' ', '_', $carrera->nombre) .
+                    '_' . str_replace(' ', '_', $carrera->nivel->nombre);
+            }
+            $nombreArchivo .= '.xlsx';
+
+            return Excel::download(new class(collect($datosExcel)) implements FromCollection, WithHeadings {
+                protected $datos;
+
+                public function __construct($datos)
+                {
+                    $this->datos = $datos;
+                }
+
+                public function collection()
+                {
+                    return $this->datos;
+                }
+
+                public function headings(): array
+                {
+                    return [
+                        'ID',
+                        'NOMBRES',
+                        'APELLIDOS',
+                        'CARNET IDENTIDAD',
+                        'CARRERA-NIVEL'
+                    ];
+                }
+            }, $nombreArchivo);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al exportar: ' . $e->getMessage());
+        }
     }
 }

@@ -37,8 +37,6 @@
                             </div>
                         </div>
                     </div>
-
-
                     <div class="col-xs">
                         <button data-toggle="modal" data-target="#matricularEstudianteModal" class="btn btn-primary" type="button">
                             Matricular Antiguo Estudiante
@@ -61,8 +59,26 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-xs">
+                        <div class="btn-group">
+                            <form action="{{ route('estudiantes.export') }}" method="GET" class="d-flex align-items-center">
+                                <div class="form-group mb-0 mr-2">
+                                    <select name="carrera_id" class="form-control select2" style="width: 200px;">
+                                        <option value="todas">Todas las Carreras</option>
+                                        @foreach ($carreras as $carrera)
+                                        <option value="{{ $carrera->carrera_id }}">
+                                            {{ $carrera->nombre }} - {{ $carrera->nivel->nombre }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
 
-
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-file-excel"></i> Exportar Excel
+                                </button>
+                            </form>
+                        </div>
+                    </div>
 
                 </div>
 

@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Recibo de Pago</title>
+    <title>Recibo de Egreso</title>
     <style>
         @page {
             margin: 0;
@@ -73,26 +73,6 @@
             margin-left: 20px;
         }
 
-        .value.many-modules {
-            font-size: 10px;
-          
-            line-height: 1.1;
-            
-        }
-
-       
-        .details.compact {
-            margin: 10px 0;
-        }
-
-        .compact .row {
-            margin: 4px 0;
-        }
-
-        .compact .label {
-            font-size: 11px;
-        }
-
         .amount {
             margin: 20px 0;
             padding: 8px;
@@ -103,7 +83,7 @@
         }
 
         .footer {
-            margin-top: 20px;
+            margin-top: 30px;
             text-align: center;
         }
 
@@ -111,12 +91,28 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
+            margin-top: 50px;
             width: 80%;
-            margin: 20px auto;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .center-image {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin: 0 20px;
+        }
+
+        .stamp-image {
+            width: 100px;
+            /* Ajusta este valor según el tamaño que necesites */
+            height: auto;
+            margin-bottom: 10px;
         }
 
         .signature {
-            width: 120px;
+            width: 150px;
             text-align: center;
         }
 
@@ -131,19 +127,6 @@
             font-weight: bold;
         }
 
-        .center-image {
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            margin: 0 10px;
-        }
-
-        .stamp-image {
-            width: 80px;
-            height: auto;
-            margin-bottom: 10px;
-        }
-
         .folio {
             position: absolute;
             top: 20px;
@@ -151,6 +134,7 @@
             font-size: 12px;
         }
 
+        /* Copias */
         .copy-label {
             position: absolute;
             top: 40px;
@@ -166,40 +150,29 @@
     <div class="container receipt-top">
         <div class="header">
             <img src="{{ asset('vendor/adminlte/dist/img/eta.jpg') }}" alt="Logo" class="logo">
-            <div class="folio">Folio: #{{ $pago->pago_id }}</div>
+            <div class="folio">Folio: #{{ $egreso->egreso_id }}</div>
             <div class="copy-label">ORIGINAL</div>
-            <div class="receipt-title">RECIBO DE PAGO</div>
+            <div class="receipt-title">RECIBO DE EGRESO</div>
         </div>
 
+        <!-- Resto del contenido igual -->
         <div class="details">
             <div class="row">
                 <span class="label">Fecha:</span>
-                <span class="value">{{ \Carbon\Carbon::parse($pago->fecha)->format('d/m/Y H:i') }}</span>
+                <span class="value">{{ \Carbon\Carbon::parse($egreso->fecha)->format('d/m/Y H:i') }}</span>
             </div>
-
             <div class="row">
-                <span class="label">Estudiante:</span>
-                <span class="value">{{ $estudiante->nombre }} {{ $estudiante->apellidos }}</span>
+                <span class="label">Nombre:</span>
+                <span class="value">{{ $egreso->nombre }}</span>
             </div>
-
-            <div class="row">
-                <span class="label">Carrera:</span>
-                <span class="value">{{ $carrera->nombre }} - {{ $nivel->nombre }}</span>
-            </div>
-
             <div class="row">
                 <span class="label">Concepto:</span>
-                <span class="value">{{ $pago->concepto }}</span>
-            </div>
-
-            <div class="row">
-                <span class="label">Módulos Pagados:</span>
-                <span class="value">{{ $pago->mes_pago }}</span>
+                <span class="value">{{ $egreso->concepto }}</span>
             </div>
         </div>
 
         <div class="amount">
-            MONTO TOTAL: {{ number_format($pago->monto) }} BS
+            MONTO TOTAL: {{ number_format($egreso->monto, 2) }} BS
         </div>
 
         <div class="footer">
@@ -216,7 +189,7 @@
                     <div class="signature-title">Recibí Conforme</div>
                 </div>
             </div>
-            <p>Este documento es un comprobante de pago</p>
+            <p>Este documento es un comprobante de egreso ETA HANS ROTH</p>
             <p style="font-size: 12px;">Fecha de impresión: {{ now('America/La_Paz')->format('d/m/Y H:i:s') }}</p>
         </div>
     </div>
@@ -225,42 +198,29 @@
     <div class="container receipt-bottom">
         <div class="header">
             <img src="{{ asset('vendor/adminlte/dist/img/eta.jpg') }}" alt="Logo" class="logo">
-            <div class="folio">Folio: #{{ $pago->pago_id }}</div>
+            <div class="folio">Folio: #{{ $egreso->egreso_id }}</div>
             <div class="copy-label">COPIA</div>
-            <div class="receipt-title">RECIBO DE PAGO</div>
+            <div class="receipt-title">RECIBO DE EGRESO</div>
         </div>
 
+        <!-- Resto del contenido igual -->
         <div class="details">
             <div class="row">
                 <span class="label">Fecha:</span>
-                <span class="value">{{ \Carbon\Carbon::parse($pago->fecha)->format('d/m/Y H:i') }}</span>
+                <span class="value">{{ \Carbon\Carbon::parse($egreso->fecha)->format('d/m/Y H:i') }}</span>
             </div>
-
             <div class="row">
-                <span class="label">Estudiante:</span>
-                <span class="value">{{ $estudiante->nombre }} {{ $estudiante->apellidos }}</span>
+                <span class="label">Nombre:</span>
+                <span class="value">{{ $egreso->nombre }}</span>
             </div>
-
-            <div class="row">
-                <span class="label">Carrera:</span>
-                <span class="value">{{ $carrera->nombre }} - {{ $nivel->nombre }}</span>
-            </div>
-
             <div class="row">
                 <span class="label">Concepto:</span>
-                <span class="value">{{ $pago->concepto }}</span>
-            </div>
-
-            <div class="row">
-                <span class="label">Módulos Pagados:</span>
-                <span class="value {{ str_word_count($pago->mes_pago) > 5 ? 'many-modules' : '' }}">
-                    {{ $pago->mes_pago }}
-                </span>
+                <span class="value">{{ $egreso->concepto }}</span>
             </div>
         </div>
 
         <div class="amount">
-            MONTO TOTAL: {{ number_format($pago->monto) }} BS
+            MONTO TOTAL: {{ number_format($egreso->monto, 2) }} BS
         </div>
 
         <div class="footer">
@@ -277,7 +237,7 @@
                     <div class="signature-title">Recibí Conforme</div>
                 </div>
             </div>
-            <p>Este documento es un comprobante de pago</p>
+            <p>Este documento es un comprobante de egreso ETA HANS ROTH</p>
             <p style="font-size: 12px;">Fecha de impresión: {{ now('America/La_Paz')->format('d/m/Y H:i:s') }}</p>
         </div>
     </div>
