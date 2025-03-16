@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Egreso;
 use App\Models\pagos;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
@@ -26,8 +28,10 @@ class reportesController extends Controller
             'matricula.estudianteCarrera.carrera.nivel'
         ])->get();
 
-        $totalPagos = $pago->sum('monto');
+        $totalPagos = pagos::sum('monto');
+
         $totalegresos  = Egreso::sum('monto');
+
 
         // Convertimos la colección a un formato más conveniente para la vista
         $pagoConDetalles = $pago->map(function ($pago) {
@@ -132,9 +136,7 @@ class reportesController extends Controller
         ]);
 
         $fechaInicio = $request->input('fecha_inicio');
-        $fechaFin = $request->input('fecha_fin');
-
-        // Obtener los pagos dentro del rango de fechas
+        $fechaFin = $request->input('fecha_fin'); // Obtener los pagos dentro del rango de fechas
         $pagos = pagos::with([
             'matricula.estudianteCarrera.estudiante',
             'matricula.estudianteCarrera.carrera.nivel'
@@ -162,23 +164,26 @@ class reportesController extends Controller
                 'Ingreso' => $pago->monto,
             ];
         });
-
-        // Calcular totales para la segunda tabla
+        $fechaInicioSistema = Carbon::create(2025, 1, 1)->startOfMonth(); // Inicio del sistema (1 de enero de 2025)
+        $fechaInicio = Carbon::parse($fechaInicio); // Convertir la fecha de inicio a un objeto Carbon
+        $fechaFin = Carbon::parse($fechaFin); // Convertir la fecha de fin a un objeto Carbon
         $montoTotalPagos = pagos::sum('monto'); // Total de todos los pagos
-        $montoPagosMesActual = $pagos->sum('monto'); // Total de pagos en el rango actual
-        $montoPagosSinMesActual = $montoTotalPagos - $montoPagosMesActual; // Total sin contar el rango actual
-        $montoEgresosMesActual = Egreso::whereBetween('fecha', [$fechaInicio, $fechaFin])->sum('monto'); // Egresos del rango actual
+        $montoPagosMesActual = pagos::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto'); // Total de pagos en el rango actual
+        $montoPagosSinMesActual =pagos::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioSistema, $fechaInicio->copy()->subDay()])->sum('monto')
+        - Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioSistema, $fechaInicio->copy()->subDay()])->sum('monto');
+        $montoEgresosMesActual = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto'); // Egresos del rango actual
         $totalCaja = ($montoPagosSinMesActual + $montoPagosMesActual) - $montoEgresosMesActual;
+
 
         // Crear los datos de la segunda tabla (totales)
         $datosTotales = collect([
             [
-                'Titulo' => 'Monto Total de Pagos',
+                'Titulo' => 'Monto Total de Ingresos',
                 'Valor' => $montoTotalPagos,
             ],
             [
                 'Titulo' => 'Monto Total del Mes Anterior',
-                'Valor' => $montoPagosSinMesActual,
+                'Valor' =>  $montoPagosSinMesActual,
             ],
             [
                 'Titulo' => 'Monto Total de Ingresos (Mes Actual)',
@@ -189,7 +194,7 @@ class reportesController extends Controller
                 'Valor' => $montoEgresosMesActual,
             ],
             [
-                'Titulo' => 'Total en Caja',
+                'Titulo' => 'Total en Caja (Mes Actual)',
                 'Valor' => $totalCaja,
             ],
         ]);
