@@ -4,13 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Egreso;
 use App\Models\pagos;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
-use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+
 
 
 class reportesController extends Controller
@@ -22,32 +23,39 @@ class reportesController extends Controller
      */
     public function index()
     {
-
         $pago = pagos::with([
             'matricula.estudianteCarrera.estudiante',
             'matricula.estudianteCarrera.carrera.nivel'
         ])->get();
 
-        $totalPagos = $pago->sum('monto');
+        $totalPagos = pagos::sum('monto');
+
         $totalegresos  = Egreso::sum('monto');
+
 
         // Convertimos la colección a un formato más conveniente para la vista
         $pagoConDetalles = $pago->map(function ($pago) {
-            $estudiante = $pago->matricula->estudianteCarrera->estudiante;
-            $carrera = $pago->matricula->estudianteCarrera->carrera;
-            $nivel = $carrera->nivel;
+            $matricula = $pago->matricula;
+            $estudiante = $matricula->estudianteCarrera->estudiante ?? null;
+            $carrera = $matricula->estudianteCarrera->carrera ?? null;
+            $nivel = $carrera->nivel ?? null;
+
+            // Construcción del detalle del pago
+            $detalle = $matricula
+                ? sprintf(
+                    "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
+                    $estudiante->nombre ?? 'Desconocido',
+                    $estudiante->apellidos ?? '',
+                    $pago->mes_pago ?? 'N/A',
+                    $carrera->nombre ?? 'Pago Varios',
+                    $nivel->nombre ?? 'N/A'
+                )
+                : sprintf("Pagos Varios, Concepto: %s, Monto: %s", $pago->concepto, $pago->monto);
 
             return [
                 'id' => $pago->pago_id,
-                'fecha' => $pago->fecha,
-                'detalle' => sprintf(
-                    "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
-                    $estudiante->nombre,
-                    $estudiante->apellidos,
-                    $pago->mes_pago,
-                    $carrera->nombre,
-                    $nivel->nombre
-                ),
+                'fecha' => Carbon::parse($pago->fecha)->format('Y-m-d'),
+                'detalle' => $detalle,
                 'ingreso' => $pago->monto
             ];
         });
@@ -134,25 +142,36 @@ class reportesController extends Controller
         ]);
 
         $fechaInicio = $request->input('fecha_inicio');
-        $fechaFin = $request->input('fecha_fin');
-
-        // Obtener los pagos dentro del rango de fechas
+        $fechaFin = $request->input('fecha_fin'); // Obtener los pagos dentro del rango de fechas
         $pagos = pagos::with([
             'matricula.estudianteCarrera.estudiante',
             'matricula.estudianteCarrera.carrera.nivel'
         ])
-            ->whereBetween('fecha', [$fechaInicio, $fechaFin])
+            ->whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])
             ->get();
 
         // Crear los datos de la primera tabla (detalles de pagos)
         $datosPagos = $pagos->map(function ($pago) {
-            $estudiante = $pago->matricula->estudianteCarrera->estudiante;
-            $carrera = $pago->matricula->estudianteCarrera->carrera;
-            $nivel = $carrera->nivel;
+            $matricula = $pago->matricula;
+            $estudiante = $matricula->estudianteCarrera->estudiante ?? null;
+            $carrera = $matricula->estudianteCarrera->carrera ?? null;
+            $nivel = $carrera->nivel ?? null;
+
+            // Construcción del detalle del pago
+            $detalle = $matricula
+                ? sprintf(
+                    "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
+                    $estudiante->nombre ?? 'Desconocido',
+                    $estudiante->apellidos ?? '',
+                    $pago->mes_pago ?? 'N/A',
+                    $carrera->nombre ?? 'Pago Varios',
+                    $nivel->nombre ?? 'N/A'
+                )
+                : sprintf("Pagos Varios, Concepto: %s, Monto: %s", $pago->concepto, $pago->monto);
 
             return [
                 'Recibo' => $pago->pago_id,
-                'Fecha de Pago' => $pago->fecha,
+                'Fecha de Pago' => Carbon::parse($pago->fecha)->format('Y-m-d'),
                 'Detalle' => sprintf(
                     "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
                     $estudiante->nombre,
@@ -166,25 +185,26 @@ class reportesController extends Controller
         });
 
         // Calcular totales para la segunda tabla
-        $fechaInicioSistema = Carbon::create(2025, 1, 1)->startOfMonth(); // Inicio del sistema (1 de enero de 2025)
-        $fechaInicio = Carbon::parse($fechaInicio); // Convertir la fecha de inicio a un objeto Carbon
-        $fechaFin = Carbon::parse($fechaFin); // Convertir la fecha de fin a un objeto Carbon
-        $montoTotalPagos = pagos::sum('monto'); // Total de todos los pagos
-        $montoPagosMesActual = pagos::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto'); // Total de pagos en el rango actual
+        $fechaInicioSistema = Carbon::create(2025, 1, 1)->startOfMonth();
+        $fechaInicio = Carbon::parse($fechaInicio);
+        $fechaFin = Carbon::parse($fechaFin);
+        $montoTotalPagos = pagos::sum('monto');
+        $montoPagosMesActual = pagos::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto');
         $montoPagosSinMesActual = pagos::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioSistema, $fechaInicio->copy()->subDay()])->sum('monto')
             - Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioSistema, $fechaInicio->copy()->subDay()])->sum('monto');
-        $montoEgresosMesActual = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto'); // Egresos del rango actual
+        $montoEgresosMesActual = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto');
         $totalCaja = ($montoPagosSinMesActual + $montoPagosMesActual) - $montoEgresosMesActual;
+
 
         // Crear los datos de la segunda tabla (totales)
         $datosTotales = collect([
             [
-                'Titulo' => 'Monto Total de Pagos',
+                'Titulo' => 'Monto Total de Ingresos',
                 'Valor' => $montoTotalPagos,
             ],
             [
                 'Titulo' => 'Monto Total del Mes Anterior',
-                'Valor' => $montoPagosSinMesActual,
+                'Valor' =>  $montoPagosSinMesActual,
             ],
             [
                 'Titulo' => 'Monto Total de Ingresos (Mes Actual)',
@@ -195,30 +215,34 @@ class reportesController extends Controller
                 'Valor' => $montoEgresosMesActual,
             ],
             [
-                'Titulo' => 'Total en Caja',
+                'Titulo' => 'Total en Caja (Mes Actual)',
                 'Valor' => $totalCaja,
             ],
         ]);
         // Obtener los egresos dentro del rango de fechas
         $egresos = Egreso::whereBetween('fecha', [$fechaInicio, $fechaFin])->get();
 
-        // Mapear datos de egresos para la tercera tabla con los campos exactos que necesitas
+        // Obtener los egresos dentro del rango de fechas
+        $egresos = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->get();
+
+        // Mapear datos de egresos para la tercera tabla
         $datosEgresos = $egresos->map(function ($egreso) {
             return [
                 'Recibo' => $egreso->egreso_id,
-                'Fecha' => $egreso->fecha,
+                'Fecha' => Carbon::parse($egreso->fecha)->format('Y-m-d'),
                 'Nombre' => $egreso->nombre,
                 'Concepto' => $egreso->concepto,
                 'Egreso' => $egreso->monto,
             ];
         });
-        // Exportar a Excel con dos tablas
-        return Excel::download(new class($datosPagos, $datosTotales,$datosEgresos) implements FromCollection, WithMultipleSheets {
+
+        // Exportar a Excel
+        return Excel::download(new class($datosPagos, $datosTotales, $datosEgresos) implements FromCollection, WithMultipleSheets {
             private $pagos;
             private $totales;
             private $egresos;
 
-            public function __construct($pagos, $totales,$egresos)
+            public function __construct($pagos, $totales, $egresos)
             {
                 $this->pagos = $pagos;
                 $this->totales = $totales;
@@ -251,8 +275,6 @@ class reportesController extends Controller
                             return ['Recibo', 'Fecha de Pago', 'Detalle', 'Ingreso'];
                         }
                     },
-
-                    // Segunda hoja
                     new class($this->totales) implements FromCollection, WithHeadings {
                         private $totales;
 
@@ -271,8 +293,7 @@ class reportesController extends Controller
                             return ['Título', 'Valor'];
                         }
                     },
-                     // Tercera hoja: Egresos
-                     new class($this->egresos) implements FromCollection, WithHeadings {
+                    new class($this->egresos) implements FromCollection, WithHeadings {
                         private $egresos;
                         public function __construct($egresos)
                         {

@@ -33,6 +33,11 @@ Route::resource('gestiones',GestionController::class);
 Route::get('/search', [PagosController::class, 'search']);
 Route::get('/pagos/lista', [PagosController::class, 'lista'])->name('pagos.lista');
 Route::get('/pagos/{id}/print', [PagosController::class, 'print'])->name('pagos.print');
+Route::get('/pagos/extra', [PagosController::class, 'createExtra'])->name('pagos.extra');
+Route::post('/pagos/extra/store', [PagosController::class, 'storeExtra'])->name('pagos.storeExtra');
+Route::get('/pagos/extra/{id}', [PagosController::class, 'showExtra'])->name('pagos.showExtra');
+
+
 Route::resource('pagos',PagosController::class);
 Route::get('getEstudianteInfo/{id}', [PagosController::class, 'getEstudianteInfo']);
 // Rutas específicas para niveles de carreras
@@ -49,6 +54,8 @@ Route::resource('reportes',reportesController::class);
 Route::get('/reportes/index-egreso', [reportesController::class, 'index_egreso'])->name('reportes.index-egreso');
 Route::post('/exportar-excel', [reportesController::class, 'exportToExcel'])->name('reportes.export');
 Route::get('egresos/print/{egreso_id}', [EgresoController::class, 'print'])->name('egresos.print');
+//Ingresos Extra
+
 
 
 

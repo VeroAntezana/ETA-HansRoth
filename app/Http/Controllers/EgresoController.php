@@ -14,7 +14,7 @@ class EgresoController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)    
+    public function index(Request $request)
     {
         // Obtener fechas del formulario
         $fechaInicio = $request->input('fecha_inicio');
