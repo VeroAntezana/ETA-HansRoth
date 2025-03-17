@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\carreras;
+use App\Models\Carreras;
 use App\Models\Estudiantes;
 use App\Models\niveles;
 use App\Models\pagos;

@@ -9,6 +9,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 
 class reportesController extends Controller
@@ -164,10 +166,14 @@ class reportesController extends Controller
         });
 
         // Calcular totales para la segunda tabla
+        $fechaInicioSistema = Carbon::create(2025, 1, 1)->startOfMonth(); // Inicio del sistema (1 de enero de 2025)
+        $fechaInicio = Carbon::parse($fechaInicio); // Convertir la fecha de inicio a un objeto Carbon
+        $fechaFin = Carbon::parse($fechaFin); // Convertir la fecha de fin a un objeto Carbon
         $montoTotalPagos = pagos::sum('monto'); // Total de todos los pagos
-        $montoPagosMesActual = $pagos->sum('monto'); // Total de pagos en el rango actual
-        $montoPagosSinMesActual = $montoTotalPagos - $montoPagosMesActual; // Total sin contar el rango actual
-        $montoEgresosMesActual = Egreso::whereBetween('fecha', [$fechaInicio, $fechaFin])->sum('monto'); // Egresos del rango actual
+        $montoPagosMesActual = pagos::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto'); // Total de pagos en el rango actual
+        $montoPagosSinMesActual = pagos::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioSistema, $fechaInicio->copy()->subDay()])->sum('monto')
+            - Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioSistema, $fechaInicio->copy()->subDay()])->sum('monto');
+        $montoEgresosMesActual = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->sum('monto'); // Egresos del rango actual
         $totalCaja = ($montoPagosSinMesActual + $montoPagosMesActual) - $montoEgresosMesActual;
 
         // Crear los datos de la segunda tabla (totales)
@@ -193,16 +199,30 @@ class reportesController extends Controller
                 'Valor' => $totalCaja,
             ],
         ]);
+        // Obtener los egresos dentro del rango de fechas
+        $egresos = Egreso::whereBetween('fecha', [$fechaInicio, $fechaFin])->get();
 
+        // Mapear datos de egresos para la tercera tabla con los campos exactos que necesitas
+        $datosEgresos = $egresos->map(function ($egreso) {
+            return [
+                'Recibo' => $egreso->egreso_id,
+                'Fecha' => $egreso->fecha,
+                'Nombre' => $egreso->nombre,
+                'Concepto' => $egreso->concepto,
+                'Egreso' => $egreso->monto,
+            ];
+        });
         // Exportar a Excel con dos tablas
-        return Excel::download(new class($datosPagos, $datosTotales) implements FromCollection, WithMultipleSheets {
+        return Excel::download(new class($datosPagos, $datosTotales,$datosEgresos) implements FromCollection, WithMultipleSheets {
             private $pagos;
             private $totales;
+            private $egresos;
 
-            public function __construct($pagos, $totales)
+            public function __construct($pagos, $totales,$egresos)
             {
                 $this->pagos = $pagos;
                 $this->totales = $totales;
+                $this->egresos = $egresos;
             }
 
             public function collection()
@@ -249,6 +269,22 @@ class reportesController extends Controller
                         public function headings(): array
                         {
                             return ['Título', 'Valor'];
+                        }
+                    },
+                     // Tercera hoja: Egresos
+                     new class($this->egresos) implements FromCollection, WithHeadings {
+                        private $egresos;
+                        public function __construct($egresos)
+                        {
+                            $this->egresos = $egresos;
+                        }
+                        public function collection()
+                        {
+                            return $this->egresos;
+                        }
+                        public function headings(): array
+                        {
+                            return ['Recibo', 'Fecha', 'Nombre', 'Concepto', 'Egreso'];
                         }
                     },
                 ];

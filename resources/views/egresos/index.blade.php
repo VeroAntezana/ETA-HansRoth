@@ -19,6 +19,28 @@
                     </div>
                 </div>
             </div>
+            <div class="card">
+                <div class="card-body text-center">
+                    <h4>Total de Egresos</h4>
+                    <h2 class="text-danger"><strong>Bs {{ number_format($totalEgresos, 2) }}</strong></h2>
+                    <p>Total acumulado de egresos</p>
+                </div>
+            </div>
+
+            <!-- Filtro de fechas -->
+            <div class="card-body">
+                <form method="GET" action="{{ route('egresos.index') }}" class="form-inline">
+                    <div class="form-group mx-2">
+                        <label for="fecha_inicio">Fecha Inicio: </label>
+                        <input type="date" class="form-control ml-2" name="fecha_inicio" value="{{ request('fecha_inicio') }}">
+                    </div>
+                    <div class="form-group mx-2">
+                        <label for="fecha_fin">Fecha Fin: </label>
+                        <input type="date" class="form-control ml-2" name="fecha_fin" value="{{ request('fecha_fin') }}">
+                    </div>
+                    <button type="submit" class="btn btn-success mx-2">Filtrar</button>
+                </form>
+            </div>
 
             <div class="card-body p-0">
                 <table class="table table-hover table-head-fixed">

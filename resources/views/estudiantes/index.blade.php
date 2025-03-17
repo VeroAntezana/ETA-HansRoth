@@ -242,7 +242,7 @@
 
     const buscarEstudiante = async (texto) => {
         try {
-            const resultado = await fetch(`http://127.0.0.1:8000/api/estudiantes/create/buscar?q=${texto}`);
+            const resultado = await fetch(`http://ethahansrot.ddns.net/api/estudiantes/create/buscar?q=${texto}`);
             if (!resultado.ok) {
                 throw new Error(`Error en la solicitud: ${resultado.status}`);
             }
