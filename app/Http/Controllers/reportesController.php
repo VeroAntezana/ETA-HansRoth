@@ -15,6 +15,9 @@ use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class reportesController extends Controller
 {
+    public function dashboard(){
+        return view('welcome');
+    }
     /**
      * Display a listing of the resource.
      *

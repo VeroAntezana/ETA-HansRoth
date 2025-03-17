@@ -541,7 +541,11 @@ return [
                 ],
             ],
         ],
-
+        [
+            'text'    => 'SALIR',
+            'icon'    => 'fas fa-fw far fa-newspaper',
+            'url'  => 'logout',
+        ],
 
     ],
 
