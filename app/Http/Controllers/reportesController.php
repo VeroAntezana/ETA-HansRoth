@@ -152,34 +152,27 @@ class reportesController extends Controller
         // Crear los datos de la primera tabla (detalles de pagos)
         $datosPagos = $pagos->map(function ($pago) {
             $matricula = $pago->matricula;
-            $estudiante = $matricula->estudianteCarrera->estudiante ?? null;
-            $carrera = $matricula->estudianteCarrera->carrera ?? null;
-            $nivel = $carrera->nivel ?? null;
-
-            // Construcción del detalle del pago
-            $detalle = $matricula
-                ? sprintf(
+            if ($matricula) {
+                $estudiante = $matricula->estudianteCarrera->estudiante;
+                $carrera    = $matricula->estudianteCarrera->carrera;
+                $nivel      = $carrera->nivel;
+                $detalle = sprintf(
                     "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
                     $estudiante->nombre ?? 'Desconocido',
                     $estudiante->apellidos ?? '',
                     $pago->mes_pago ?? 'N/A',
                     $carrera->nombre ?? 'Pago Varios',
                     $nivel->nombre ?? 'N/A'
-                )
-                : sprintf("Pagos Varios, Concepto: %s, Monto: %s", $pago->concepto, $pago->monto);
-
+                );
+            } else {
+                // En el caso de pago extra (sin matrícula) usamos otro detalle
+                $detalle = sprintf("Pagos Varios, Concepto: %s, Monto: %s", $pago->concepto, $pago->monto);
+            }
             return [
-                'Recibo' => $pago->pago_id,
-                'Fecha de Pago' => Carbon::parse($pago->fecha)->format('Y-m-d'),
-                'Detalle' => sprintf(
-                    "%s %s, Meses Pagados: %s, Carrera y Nivel: %s - %s",
-                    $estudiante->nombre,
-                    $estudiante->apellidos,
-                    $pago->mes_pago,
-                    $carrera->nombre,
-                    $nivel->nombre
-                ),
-                'Ingreso' => $pago->monto,
+                'Recibo'         => $pago->pago_id,
+                'Fecha de Pago'  => Carbon::parse($pago->fecha)->format('Y-m-d'),
+                'Detalle'        => $detalle, // Se usa la variable $detalle ya construida
+                'Ingreso'        => $pago->monto,
             ];
         });
 
