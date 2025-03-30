@@ -154,8 +154,7 @@
                     const isIncompleto = row.dataset.pagado === 'incompleto';
 
                     // Mostrar solo si coincide con la carrera seleccionada y tiene pagos incompletos
-                    const shouldShow = (carreraId === '' || rowCarreraId === carreraId) &&
-                        isIncompleto;
+                    const shouldShow = (carreraId === '' || rowCarreraId === carreraId);
 
                     row.style.display = shouldShow ? '' : 'none';
                 });

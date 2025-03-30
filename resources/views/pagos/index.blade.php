@@ -220,7 +220,7 @@
 
         const buscarEstudiante = async (texto) => {
             try {
-                const url = `{{ config('app.url') }}/api/estudiantes/create/buscar?q=${texto}`;
+                const url = `http://ethahansrot.ddns.net/api/estudiantes/create/buscar?q=${texto}`;
                 const resultado = await fetch(url);
 
                 if (!resultado.ok) {

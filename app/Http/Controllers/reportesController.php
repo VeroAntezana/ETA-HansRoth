@@ -13,6 +13,7 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 
+
 class reportesController extends Controller
 {
     public function dashboard(){
@@ -214,6 +215,8 @@ class reportesController extends Controller
                 'Valor' => $totalCaja,
             ],
         ]);
+        // Obtener los egresos dentro del rango de fechas
+        $egresos = Egreso::whereBetween('fecha', [$fechaInicio, $fechaFin])->get();
 
         // Obtener los egresos dentro del rango de fechas
         $egresos = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicio, $fechaFin])->get();

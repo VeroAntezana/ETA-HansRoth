@@ -6,7 +6,7 @@ use App\Models\carrera_Estudiantes;
 use App\Models\Carreras;
 use App\Models\Estudiantes;
 use App\Models\Gestion;
-use App\Models\Niveles;
+use App\Models\niveles;
 use App\Models\Matricula;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +27,7 @@ class EstudiantesController extends Controller
     {
         $estudiantes = Estudiantes::with('carreras', 'matriculas.gestion')->orderBy('estudiante_id', 'asc')->paginate(9);
         $gestiones = Gestion::all();
-        $carreras = Carreras::with('nivel')->get();
+        $carreras = carreras::with('nivel')->get();
         return view('estudiantes.index', compact('estudiantes', 'gestiones', 'carreras'));
     }
 
@@ -87,7 +87,7 @@ class EstudiantesController extends Controller
         $estudiantes = Estudiantes::all();
         $carreras = Carreras::with('nivel')->get();
         $gestiones = Gestion::all();
-
+       
         return view('estudiantes.create', compact('estudiantes', 'carreras', 'gestiones'));
     }
 

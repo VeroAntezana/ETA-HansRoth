@@ -12,7 +12,7 @@
 </head>
 <body>
     <div class="container">
-        <h2>ETA HANS ROT</h2>
+        <h2>ETA HANS ROTH</h2>
         <form action="{{ route('login.verificar') }}" method="POST">
             @csrf
              <div class="input">
