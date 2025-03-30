@@ -265,6 +265,15 @@ class PagosController extends Controller
     {
         return view('pagos.pago_extra');
     }
+    public function showExtra($id){
+           // Buscar el pago por su id
+           $pago = Pagos::findOrFail($id);
+          
+           // Si el pago es un ingreso extra (no tiene matrícula), redirigir a la vista de pagos extra
+           if ($pago->matricula_id === null) {
+               return view('pagos.show_extra', compact('pago'));
+           }
+    }
 
     public function storeExtra(Request $request)
     {
@@ -275,7 +284,7 @@ class PagosController extends Controller
         ]);
 
         // Guardar el pago en la tabla `pagos` con matricula_id y mes_pago en NULL
-        Pagos::create([
+        $pagoExtra=Pagos::create([
             'matricula_id' => null, // Es un ingreso extra
             'concepto' => $request->concepto,
             'fecha' => $request->fecha,
@@ -283,6 +292,6 @@ class PagosController extends Controller
             'mes_pago' => null,
         ]);
 
-        return redirect()->route('pagos.extra')->with('success', 'Ingreso extra registrado exitosamente.');
+        return redirect()->route('pagos.show_extra',['id' => $pagoExtra->pago_id])->with('success', 'Ingreso extra registrado exitosamente.');
     }
 }

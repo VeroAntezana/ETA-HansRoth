@@ -43,7 +43,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/pagos/{id}/print', [PagosController::class, 'print'])->name('pagos.print');
     Route::get('/pagos/extra', [PagosController::class, 'createExtra'])->name('pagos.extra');
     Route::post('/pagos/extra/store', [PagosController::class, 'storeExtra'])->name('pagos.storeExtra');
-    Route::get('/pagos/extra/{id}', [PagosController::class, 'showExtra'])->name('pagos.showExtra');
+    Route::get('/pagos/show_extra/{id}', [PagosController::class, 'showExtra'])->name('pagos.show_extra');
 
 
     Route::resource('pagos', PagosController::class);
