@@ -198,7 +198,8 @@
 
         const buscarEstudiante = async (texto) => {
             try {
-                const resultado = await fetch(`http://eta-hansroth.test/api/estudiantes/create/buscar?q=${texto}`);
+                const url = `http://ethahansrot.ddns.net/api/estudiantes/create/buscar?q=${texto}`;
+                const resultado = await fetch(url);
                 if (!resultado.ok) {
                     throw new Error(`Error en la solicitud: ${resultado.status}`);
                 }
