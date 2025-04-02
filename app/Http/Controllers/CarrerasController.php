@@ -16,8 +16,7 @@ class CarrerasController extends Controller
     public function index()
     {
         // $carreras= Carreras::orderby('id', 'asc')->paginate(9);
-        $carreras = Carreras::with('nivel')
-        ->orderBy('carrera_id', 'asc')  // Añadimos un segundo ordenamiento
+        $carreras = Carreras::with('nivel') // Añadimos un segundo ordenamiento
         ->paginate(9);
         $niveles = niveles::all();
         return view('carreras.index', compact('carreras', 'niveles'));

@@ -279,8 +279,9 @@
 
         // Eliminar carreras en las que ya esté matriculado
         estudiante.carreras.forEach((carrera) => {
+            const cadenaCompleta = `${carrera.nombre_carrera} - ${carrera.nivel}`;
             const option = Array.from(selectCarrera.options).find(
-                (opt) => opt.textContent.includes(carrera.nombre_carrera)
+                (opt) => opt.textContent.trim() === cadenaCompleta
             );
             if (option) {
                 option.remove();
