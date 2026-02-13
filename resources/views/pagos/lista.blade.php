@@ -44,7 +44,7 @@
                     <div class="row justify-content-between">
                         <div class="col-xs-4 my-auto">
                             <h3 class="card-title my-auto">
-                                <strong>LISTA DE PAGOS</strong>
+                                <strong>LISTA DE PAGOS rama 2025</strong>
                                 <a class="btn" href="{{ route('pagos.lista') }}">
                                     <i class="fas fa-sync fa-md fa-fw"></i>
                                 </a>
