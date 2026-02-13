@@ -45,7 +45,7 @@
                             <form action="{{ route('reportes.export') }}" method="POST" id="exportForm">
                                 @csrf
                                 <div class="d-flex mb-3">
-                                    <div class="form-group mr-2">
+                                    <!-- <div class="form-group mr-2">
                                         <label for="gestion_id">Gestion:</label>
                                         <select name="gestion_id" id="gestion_id" class="form-control">
                                             @foreach ($gestiones as $gestion)
@@ -55,7 +55,7 @@
                                                 </option>
                                             @endforeach
                                         </select>
-                                    </div>
+                                    </div> -->
                                     <div class="form-group mr-2">
                                         <label for="fecha_inicio">Fecha de Inicio:</label>
                                         <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control"
@@ -66,13 +66,13 @@
                                         <input type="date" name="fecha_fin" id="fecha_fin" class="form-control"
                                             value="{{ optional($gestionActiva)->fecha_fin }}">
                                     </div>
-                                    <button type="submit" class="btn btn-primary ml-4 align-self-end">Exportar a
-                                        Excel</button>
+                                    
                                 </div>
                             </form>
                         </div>
-
+                        <br>
                         <div class="col-md-auto">
+                            <label for="fecha_inicio">Fecha de Inicio:</label>
                             <form action="{{ route('reportes.index') }}" method="GET">
                                 <select name="gestion_id" class="form-control select2" style="width: 220px;"
                                     onchange="this.form.submit()">
@@ -85,6 +85,8 @@
                                 </select>
                             </form>
                         </div>
+                        <button type="submit" class="btn btn-primary ml-4 align-self-end">Exportar a
+                                        Excel</button>
                         <div class="col-md-auto">
                             <a href="{{ route('pagos.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" class="btn btn-primary">Nuevo</a>
                         </div>

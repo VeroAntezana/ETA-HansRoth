@@ -65,6 +65,13 @@
                             </form>
                         </div>
                         <div class="col-xs">
+                            <form action="{{ route('pagos.lista', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" method="GET">
+                                <input type="hidden" name="gestion_id" value="{{ optional($gestionActiva)->gestion_id }}">
+                                <input type="text" id="filterBusqueda" name="busqueda" class="form-control"
+                                    placeholder="Buscar por nombre o apellido..." value="{{ $busqueda ?? '' }}">
+                            </form>
+                        </div>
+                        <div class="col-xs">
                             <select name="carrera_id" id="filterCarrera" class="form-control select2" style="width: 100%;">
                                 <option value="">Todas las carreras</option>
                                 @foreach ($carreras as $carrera)
@@ -163,21 +170,31 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const filterCarrera = document.getElementById('filterCarrera');
+            const filterBusqueda = document.getElementById('filterBusqueda');
 
-            filterCarrera.addEventListener('change', function() {
-                const carreraId = this.value;
+            function aplicarFiltros() {
+                const carreraId = filterCarrera ? filterCarrera.value : '';
+                const busqueda = filterBusqueda ? filterBusqueda.value.toLowerCase().trim() : '';
                 const rows = document.querySelectorAll('tbody tr');
 
                 rows.forEach(row => {
                     const rowCarreraId = row.dataset.carreraId;
-                    const isIncompleto = row.dataset.pagado === 'incompleto';
+                    const nombre = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    const apellidos = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
 
-                    // Mostrar solo si coincide con la carrera seleccionada y tiene pagos incompletos
-                    const shouldShow = (carreraId === '' || rowCarreraId === carreraId);
+                    const coincideCarrera = (carreraId === '' || rowCarreraId === carreraId);
+                    const coincideBusqueda = (busqueda === '' || nombre.includes(busqueda) || apellidos.includes(busqueda));
 
-                    row.style.display = shouldShow ? '' : 'none';
+                    row.style.display = (coincideCarrera && coincideBusqueda) ? '' : 'none';
                 });
-            });
+            }
+
+            if (filterCarrera) {
+                filterCarrera.addEventListener('change', aplicarFiltros);
+            }
+            if (filterBusqueda) {
+                filterBusqueda.addEventListener('keyup', aplicarFiltros);
+            }
         });
     </script>
     <script>
