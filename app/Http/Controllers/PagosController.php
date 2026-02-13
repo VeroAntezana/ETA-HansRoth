@@ -40,6 +40,7 @@ class PagosController extends Controller
     public function lista(Request $request)
     {
         $context = $this->gestionResolver->resolve($request->input('gestion_id'));
+        $busqueda = trim((string) $request->input('busqueda', ''));
 
         $matriculaQuery = Matricula::with([
             'estudianteCarrera.estudiante',
@@ -51,6 +52,13 @@ class PagosController extends Controller
             $matriculaQuery->where('gestion_id', $context['gestionActiva']->gestion_id);
         } else {
             $matriculaQuery->whereRaw('1 = 0');
+        }
+
+        if ($busqueda !== '') {
+            $matriculaQuery->whereHas('estudianteCarrera.estudiante', function ($query) use ($busqueda) {
+                $query->where('nombre', 'like', '%' . $busqueda . '%')
+                    ->orWhere('apellidos', 'like', '%' . $busqueda . '%');
+            });
         }
 
         $matriculas = $matriculaQuery->get();
@@ -83,7 +91,7 @@ class PagosController extends Controller
         $gestionActiva = $context['gestionActiva'];
         $gestionAlert = $context['gestionAlert'];
 
-        return view('pagos.lista', compact('pagosAgrupados', 'totalPagos', 'carreras', 'gestiones', 'gestionActiva', 'gestionAlert'));
+        return view('pagos.lista', compact('pagosAgrupados', 'totalPagos', 'carreras', 'gestiones', 'gestionActiva', 'gestionAlert', 'busqueda'));
     }
 
     public function search(Request $request)
