@@ -30,4 +30,6 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'app_api' => env('VITE_APP_API', env('APP_URL', 'http://localhost') . '/api/'),
+
 ];

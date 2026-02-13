@@ -3,25 +3,32 @@
 namespace App\Http\Controllers;
 
 use App\Models\Egreso;
-use Illuminate\Http\Request;
-use App\Models\Gestion;
+use App\Support\GestionContextResolver;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class EgresoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+    private GestionContextResolver $gestionResolver;
+
+    public function __construct(GestionContextResolver $gestionResolver)
+    {
+        $this->gestionResolver = $gestionResolver;
+    }
+
     public function index(Request $request)
     {
-        // Obtener fechas del formulario
+        $context = $this->gestionResolver->resolve($request->input('gestion_id'));
         $fechaInicio = $request->input('fecha_inicio');
         $fechaFin = $request->input('fecha_fin');
 
-        // Consulta de egresos con filtro de fechas
         $query = Egreso::query();
+
+        if ($context['gestionActiva']) {
+            $query->where('gestion_id', $context['gestionActiva']->gestion_id);
+        } else {
+            $query->whereRaw('1 = 0');
+        }
 
         if ($fechaInicio && $fechaFin) {
             $query->whereBetween('fecha', [
@@ -29,28 +36,26 @@ class EgresoController extends Controller
                 Carbon::parse($fechaFin)->endOfDay()
             ]);
         }
-        $egresos = $query->orderBy('fecha', 'desc')->get();
-        $totalEgresos = $query->sum('monto');
-        $gestiones = Gestion::all();
-        return view('egresos.index', compact('egresos', 'gestiones','totalEgresos'));
+
+        $egresos = (clone $query)->orderBy('fecha', 'desc')->get();
+        $totalEgresos = (clone $query)->sum('monto');
+        $gestiones = $context['gestiones'];
+        $gestionActiva = $context['gestionActiva'];
+        $gestionAlert = $context['gestionAlert'];
+
+        return view('egresos.index', compact('egresos', 'gestiones', 'totalEgresos', 'gestionActiva', 'gestionAlert'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function create(Request $request)
     {
-        $gestiones = Gestion::all();
-        return view('egresos.create', compact('gestiones',));
+        $context = $this->gestionResolver->resolve($request->input('gestion_id'));
+        $gestiones = $context['gestiones'];
+        $gestionActiva = $context['gestionActiva'];
+        $gestionAlert = $context['gestionAlert'];
+
+        return view('egresos.create', compact('gestiones', 'gestionActiva', 'gestionAlert'));
     }
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+
     public function store(Request $request)
     {
         $request->validate([
@@ -67,12 +72,6 @@ class EgresoController extends Controller
         return redirect()->route('egresos.index')->with('success', 'Egreso registrado exitosamente');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Egreso  $egreso
-     * @return \Illuminate\Http\Response
-     */
     public function show(Egreso $egreso)
     {
         //
@@ -83,25 +82,15 @@ class EgresoController extends Controller
         $egreso = Egreso::findOrFail($egreso_id);
         return view('egresos.print', compact('egreso'));
     }
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Egreso  $egreso
-     * @return \Illuminate\Http\Response
-     */
+
     public function edit(Egreso $egreso)
     {
-        $gestiones = Gestion::all();
-        return view('egresos.edit', compact('egreso', 'gestiones'));
+        $context = $this->gestionResolver->resolve(request()->input('gestion_id'));
+        $gestiones = $context['gestiones'];
+        $gestionActiva = $context['gestionActiva'];
+        return view('egresos.edit', compact('egreso', 'gestiones', 'gestionActiva'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Egreso  $egreso
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $egreso_id)
     {
         $egreso = Egreso::findOrFail($egreso_id);
@@ -115,12 +104,6 @@ class EgresoController extends Controller
         return redirect()->route('egresos.index')->with('success', ' actualizado exitosamente');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Egreso  $egreso
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Egreso $egreso)
     {
         $egreso->delete();

@@ -39,10 +39,12 @@
         </div>
         <div class="col-md-5">
             <div class="form-group">
-                <label for="gestion">GESTIÓN</label>
+                <label for="gestion">GESTION</label>
                 <select name="gestion_id" class="form-control select2" style="width: 100%;">
                     @foreach ($gestiones as $gestion)
-                        <option value="{{ $gestion->gestion_id }}">{{ $gestion->descripcion }}
+                        <option value="{{ $gestion->gestion_id }}"
+                            {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                            {{ $gestion->descripcion }}
                         </option>
                     @endforeach
                 </select>

@@ -45,11 +45,24 @@
                         <div class="col-xs-4 my-auto">
                             <h3 class="card-title my-auto">
                                 <strong>LISTA DE PAGOS</strong>
-                                <a class="btn" href="{{ route('pagos.lista') }}">
+                                <a class="btn" href="{{ route('pagos.lista', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}">
                                     <i class="fas fa-sync fa-md fa-fw"></i>
                                 </a>
                             </h3>
 
+                        </div>
+                        <div class="col-xs">
+                            <form action="{{ route('pagos.lista', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" method="GET">
+                                <select name="gestion_id" class="form-control select2" style="width: 220px;"
+                                    onchange="this.form.submit()">
+                                    @foreach ($gestiones as $gestion)
+                                        <option value="{{ $gestion->gestion_id }}"
+                                            {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                                            {{ $gestion->descripcion }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </form>
                         </div>
                         <div class="col-xs">
                             <select name="carrera_id" id="filterCarrera" class="form-control select2" style="width: 100%;">
@@ -65,13 +78,19 @@
                             <a href="#" class="btn btn-primary btn-descargar">Descargar Lista</a>
                         </div>
                         <div class="col-xs">
-                            <a href="{{ route('pagos.index') }}" class="btn btn-primary">Nuevo</a>
+                            <a href="{{ route('pagos.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" class="btn btn-primary">Nuevo</a>
                         </div>
 
 
                     </div>
 
                 </div>
+
+                @if (!empty($gestionAlert))
+                    <div class="alert alert-warning mt-2 mb-0 mx-3">
+                        {{ $gestionAlert }}
+                    </div>
+                @endif
 
                 <div class="card-body p-0">
 

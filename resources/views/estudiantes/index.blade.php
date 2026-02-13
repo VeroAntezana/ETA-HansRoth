@@ -11,7 +11,7 @@
                     <div class="col-xs-4 my-auto">
                         <h3 class="card-title my-auto">
                             <strong>LISTA DE ESTUDIANTES GENERAL</strong>
-                            <a class="btn" href="{{ route('estudiantes.index') }}">
+                            <a class="btn" href="{{ route('estudiantes.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}">
                                 <i class="fas fa-sync fa-md fa-fw"></i>
                             </a>
                         </h3>
@@ -62,6 +62,8 @@
                     <div class="col-xs">
                         <div class="btn-group">
                             <form action="{{ route('estudiantes.export') }}" method="GET" class="d-flex align-items-center">
+                                <input type="hidden" name="gestion_id"
+                                    value="{{ old('gestion_id', optional($gestionActiva)->gestion_id) }}">
                                 <div class="form-group mb-0 mr-2">
                                     <select name="carrera_id" class="form-control select2" style="width: 200px;">
                                         <option value="todas">Todas las Carreras</option>
@@ -79,8 +81,27 @@
                             </form>
                         </div>
                     </div>
+                    <div class="col-xs">
+                        <form action="{{ route('estudiantes.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" method="GET" class="d-flex align-items-center">
+                            <select name="gestion_id" class="form-control select2" style="width: 220px;"
+                                onchange="this.form.submit()">
+                                @foreach ($gestiones as $gestion)
+                                    <option value="{{ $gestion->gestion_id }}"
+                                        {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                                        {{ $gestion->descripcion }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
 
                 </div>
+
+                @if (!empty($gestionAlert))
+                    <div class="alert alert-warning mt-2 mb-0 mx-3">
+                        {{ $gestionAlert }}
+                    </div>
+                @endif
 
                 <div class="card-body p-0">
 
@@ -233,16 +254,19 @@
 
 @section('js')
 <script>
+    const apiBase = @json(rtrim(url('/api'), '/') . '/');
     const inputEstudiante = document.getElementById('buscar_estudiante');
     const sugerencias = document.getElementById('sugerencias');
     const inputNombreApellido = document.getElementById('nombre_apellido');
     const inputCI = document.getElementById('carnetCI');
     const selectCarrera = document.getElementById('matriculaCarrera');
     const estudianteID = document.getElementById('estudiante_id')
+    const selectGestion = document.querySelector('#matricularEstudianteModal select[name="gestion_id"]');
 
     const buscarEstudiante = async (texto) => {
         try {
-            const resultado = await fetch(`http://ethahansrot.ddns.net/api/estudiantes/create/buscar?q=${texto}`);
+            const gestionId = selectGestion ? selectGestion.value : '';
+            const resultado = await fetch(`${apiBase}estudiantes/create/buscar?q=${encodeURIComponent(texto)}&gestion_id=${encodeURIComponent(gestionId)}`);
             if (!resultado.ok) {
                 throw new Error(`Error en la solicitud: ${resultado.status}`);
             }

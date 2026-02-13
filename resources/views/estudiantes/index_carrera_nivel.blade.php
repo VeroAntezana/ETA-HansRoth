@@ -13,17 +13,33 @@ Estudiantes - Carrera no encontrada
     <div class="container-fluid p-4">
         <div class="card">
             <div class="card-header justify-content-between">
-                <h3 class="card-title my-auto">
-                    @if($carrera)
-                    <strong>LISTA DE ESTUDIANTES - {{ strtoupper($carrera->nombre) }} {{ strtoupper($nivel->nombre) }}</strong>
-
-                    @else
-                    <strong>Carrera no encontrada</strong>
-                    @endif
-                </h3>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h3 class="card-title my-auto">
+                        @if($carrera)
+                        <strong>LISTA DE ESTUDIANTES - {{ strtoupper($carrera->nombre) }} {{ strtoupper($nivel->nombre) }}</strong>
+                        @else
+                        <strong>Carrera no encontrada</strong>
+                        @endif
+                    </h3>
+                    <form method="GET" class="d-flex align-items-center">
+                        <select name="gestion_id" class="form-control select2" style="width: 220px;" onchange="this.form.submit()">
+                            @foreach ($gestiones as $gestion)
+                                <option value="{{ $gestion->gestion_id }}"
+                                    {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                                    {{ $gestion->descripcion }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </form>
+                </div>
             </div>
 
             <div class="card-body p-0">
+                @if(!empty($gestionAlert))
+                <div class="alert alert-warning m-3">
+                    {{ $gestionAlert }}
+                </div>
+                @endif
                 @if(session('error'))
                 <div class="alert alert-warning">
                     {{ session('error') }}
