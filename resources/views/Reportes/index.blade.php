@@ -46,12 +46,25 @@
                                 @csrf
                                 <div class="d-flex mb-3">
                                     <div class="form-group mr-2">
+                                        <label for="gestion_id">Gestion:</label>
+                                        <select name="gestion_id" id="gestion_id" class="form-control">
+                                            @foreach ($gestiones as $gestion)
+                                                <option value="{{ $gestion->gestion_id }}"
+                                                    {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                                                    {{ $gestion->descripcion }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group mr-2">
                                         <label for="fecha_inicio">Fecha de Inicio:</label>
-                                        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control">
+                                        <input type="date" name="fecha_inicio" id="fecha_inicio" class="form-control"
+                                            value="{{ optional($gestionActiva)->fecha_inicio }}">
                                     </div>
                                     <div class="form-group">
                                         <label for="fecha_fin">Fecha de Fin:</label>
-                                        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control">
+                                        <input type="date" name="fecha_fin" id="fecha_fin" class="form-control"
+                                            value="{{ optional($gestionActiva)->fecha_fin }}">
                                     </div>
                                     <button type="submit" class="btn btn-primary ml-4 align-self-end">Exportar a
                                         Excel</button>
@@ -60,9 +73,28 @@
                         </div>
 
                         <div class="col-md-auto">
-                            <a href="{{ route('pagos.index') }}" class="btn btn-primary">Nuevo</a>
+                            <form action="{{ route('reportes.index') }}" method="GET">
+                                <select name="gestion_id" class="form-control select2" style="width: 220px;"
+                                    onchange="this.form.submit()">
+                                    @foreach ($gestiones as $gestion)
+                                        <option value="{{ $gestion->gestion_id }}"
+                                            {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                                            {{ $gestion->descripcion }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </form>
+                        </div>
+                        <div class="col-md-auto">
+                            <a href="{{ route('pagos.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" class="btn btn-primary">Nuevo</a>
                         </div>
                     </div>
+
+                    @if (!empty($gestionAlert))
+                        <div class="alert alert-warning mt-2 mb-0">
+                            {{ $gestionAlert }}
+                        </div>
+                    @endif
                 </div>
 
                 <div class="card-body p-0">

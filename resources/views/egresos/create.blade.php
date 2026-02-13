@@ -7,6 +7,11 @@
                 <div class="card">
                     <div class="card-header text-center bg-primary text-white">Recibo Egreso</div>
                     <div class="card-body">
+                        @if (!empty($gestionAlert))
+                            <div class="alert alert-warning">
+                                {{ $gestionAlert }}
+                            </div>
+                        @endif
                         <form action="{{ route('egresos.store') }}" method="post" autocomplete="off">
                             @csrf
                             <div class="row">
@@ -32,7 +37,9 @@
                                 <label for="carrera">GESTION</label>
                                     <select name="gestion_id" class="form-control select2" style="width: 100%;">
                                         @foreach ($gestiones as $gestion)
-                                            <option value="{{ $gestion->gestion_id }}">{{ $gestion->descripcion }}
+                                            <option value="{{ $gestion->gestion_id }}"
+                                                {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                                                {{ $gestion->descripcion }}
                                             </option>
                                         @endforeach
                                     </select>

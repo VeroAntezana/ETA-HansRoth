@@ -7,77 +7,88 @@ use App\Models\Estudiantes;
 use App\Models\Matricula;
 use App\Models\niveles;
 use App\Models\pagos;
-use Illuminate\Http\Request;
+use App\Support\GestionContextResolver;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
 class PagosController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    private GestionContextResolver $gestionResolver;
+
+    public function __construct(GestionContextResolver $gestionResolver)
     {
-        $pago = pagos::all();
-        //$pagos = Pagos::with(['estudiante.carreras'])->get();
-        return view('pagos.index', compact('pago'));
+        $this->gestionResolver = $gestionResolver;
     }
+
+    public function index(Request $request)
+    {
+        $context = $this->gestionResolver->resolve($request->input('gestion_id'));
+        $pago = pagos::all();
+        $gestiones = $context['gestiones'];
+        $gestionActiva = $context['gestionActiva'];
+        $gestionAlert = $context['gestionAlert'];
+        return view('pagos.index', compact('pago', 'gestiones', 'gestionActiva', 'gestionAlert'));
+    }
+
     public function pdf()
     {
         $pagos = Pagos::all();
         $pdf = Pdf::loadView('pagos.pdf', compact('pagos'));
         return $pdf->stream();
     }
-    public function lista()
-{
-    // Obtener todas las matrículas con sus relaciones
-    $matriculas = Matricula::with([
-        'estudianteCarrera.estudiante',
-        'estudianteCarrera.carrera.nivel',
-        'pagos'
-    ])->get();
 
-    // Obtener todas las carreras con su nivel
-    $carreras = Carreras::with('nivel')->get();
+    public function lista(Request $request)
+    {
+        $context = $this->gestionResolver->resolve($request->input('gestion_id'));
 
-    // Transformar y agrupar los datos
-    $pagosAgrupados = $matriculas->map(function ($matricula) {
-        $estudiante = $matricula->estudianteCarrera->estudiante ?? null;
-        $carrera = $matricula->estudianteCarrera->carrera ?? null;
-        $nivel = $carrera->nivel ?? null;
-        $pagos = $matricula->pagos ?? collect(); // Si no hay pagos, usa una colección vacía
+        $matriculaQuery = Matricula::with([
+            'estudianteCarrera.estudiante',
+            'estudianteCarrera.carrera.nivel',
+            'pagos'
+        ]);
 
-        // Obtener los módulos pagados
-        $string_modulos = $pagos->sortBy('fecha')->pluck('mes_pago')->filter()->join(', ');
-        $array_modulos = explode(', ', $string_modulos);
+        if ($context['gestionActiva']) {
+            $matriculaQuery->where('gestion_id', $context['gestionActiva']->gestion_id);
+        } else {
+            $matriculaQuery->whereRaw('1 = 0');
+        }
 
-        return [
-            'matricula_id' => $matricula->matricula_id ?? null,
-            'ids_pagos' => $pagos->pluck('pago_id')->join(', '),
-            'carrera_id' => $carrera->carrera_id ?? null,
-            'nombre' => $estudiante->nombre ?? 'Desconocido',
-            'apellidos' => $estudiante->apellidos ?? '',
-            'meses_pagos' => array_map(fn($item) => (int) str_replace('Mod ', '', $item), $array_modulos),
-            'carrera_nivel' => $carrera ? ($carrera->nombre . ' - ' . $nivel->nombre) : 'N/A',
-            'duracion_carrera' => $carrera->duracion_meses ?? 0,
-            'total_pagado' => $pagos->sum('monto')
-        ];
-    });
+        $matriculas = $matriculaQuery->get();
+        $carreras = Carreras::with('nivel')->get();
 
-    $totalPagos = $pagosAgrupados->sum('total_pagado');
+        $pagosAgrupados = $matriculas->map(function ($matricula) {
+            $estudiante = $matricula->estudianteCarrera->estudiante ?? null;
+            $carrera = $matricula->estudianteCarrera->carrera ?? null;
+            $nivel = $carrera->nivel ?? null;
+            $pagos = $matricula->pagos ?? collect();
 
-    return view('pagos.lista', compact('pagosAgrupados', 'totalPagos', 'carreras'));
-}
+            $string_modulos = $pagos->sortBy('fecha')->pluck('mes_pago')->filter()->join(', ');
+            $array_modulos = $string_modulos === '' ? [] : explode(', ', $string_modulos);
 
+            return [
+                'matricula_id' => $matricula->matricula_id ?? null,
+                'ids_pagos' => $pagos->pluck('pago_id')->join(', '),
+                'carrera_id' => $carrera->carrera_id ?? null,
+                'nombre' => $estudiante->nombre ?? 'Desconocido',
+                'apellidos' => $estudiante->apellidos ?? '',
+                'meses_pagos' => array_map(fn($item) => (int) str_replace('Mod ', '', $item), $array_modulos),
+                'carrera_nivel' => $carrera ? ($carrera->nombre . ' - ' . $nivel->nombre) : 'N/A',
+                'duracion_carrera' => $carrera->duracion_meses ?? 0,
+                'total_pagado' => $pagos->sum('monto')
+            ];
+        });
 
+        $totalPagos = $pagosAgrupados->sum('total_pagado');
+        $gestiones = $context['gestiones'];
+        $gestionActiva = $context['gestionActiva'];
+        $gestionAlert = $context['gestionAlert'];
+
+        return view('pagos.lista', compact('pagosAgrupados', 'totalPagos', 'carreras', 'gestiones', 'gestionActiva', 'gestionAlert'));
+    }
 
     public function search(Request $request)
     {
-
         if ($request->ajax()) {
-
             $data = Estudiantes::where('id', 'like', '%' . $request->search . '%')
                 ->orwhere('nombre', 'like', '%' . $request->search . '%')
                 ->orwhere('apellidos', 'like', '%' . $request->search . '%')->get();
@@ -94,12 +105,10 @@ class PagosController extends Controller
             return response()->json(['success' => false, 'message' => 'Estudiante no encontrado'], 404);
         }
 
-        // Obtener el ID de la carrera y el nivel
         $carreraNivelIds = explode('_', $estudiante->carrera_nivel);
         $carreraId = $carreraNivelIds[0];
         $nivelId = $carreraNivelIds[1];
 
-        // Buscar el nombre de la carrera y el nivel
         $carrera = Carreras::find($carreraId);
         $nivel = niveles::find($nivelId);
 
@@ -107,7 +116,6 @@ class PagosController extends Controller
             return response()->json(['success' => false, 'message' => 'Carrera o nivel no encontrado'], 404);
         }
 
-        // Combinar el nombre de la carrera y el nivel
         $carreraNivel = $carrera->nombre . ' - ' . $nivel->nombre;
 
         return response()->json([
@@ -116,49 +124,29 @@ class PagosController extends Controller
         ]);
     }
 
-
-
-
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-
-    public function create()
+    public function create(Request $request)
     {
+        $context = $this->gestionResolver->resolve($request->input('gestion_id'));
         $pago = pagos::get();
-        return view('pagos.index', compact('pago'));
+        $gestiones = $context['gestiones'];
+        $gestionActiva = $context['gestionActiva'];
+        $gestionAlert = $context['gestionAlert'];
+        return view('pagos.index', compact('pago', 'gestiones', 'gestionActiva', 'gestionAlert'));
     }
 
-    //$pagos = Pagos::with(['estudiante.carreras'])->get();
-
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
-
     {
-
         $request->validate([
             'concepto' => 'required',
             'fecha' => 'required',
             'monto' => 'required',
-            'meses' => 'required|array', // Asumiendo que 'meses' es un array enviado desde el formulario
-            'matricula_id' => 'required|int', // Asegúrate de ajustar el nombre de la tabla si es diferente
+            'meses' => 'required|array',
+            'matricula_id' => 'required|int',
         ]);
-        // Obtén los nombres de los meses seleccionados
-        $selectedMonths = $request->input('meses');
 
-        // Convierte los nombres de los meses en una cadena separada por comas
+        $selectedMonths = $request->input('meses');
         $mesesPagados = implode(', ', $selectedMonths);
 
-        // Crear un nuevo objeto Pago con los datos recibidos
         $pago = Pagos::create([
             'concepto' => $request->input('concepto'),
             'fecha' => $request->input('fecha'),
@@ -167,39 +155,25 @@ class PagosController extends Controller
             'matricula_id' => $request->input('matricula_id'),
         ]);
 
-        // Guardar el pago en la base de datos
         $pago->save();
-        // Redireccionar o devolver una respuesta según sea necesario
         return redirect()->route('pagos.show', $pago->pago_id);
     }
 
-
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\pagos  $pagos
-     * @return \Illuminate\Http\Response
-     */
     public function show($id)
     {
-        // Buscar el pago por su id
         $pago = Pagos::findOrFail($id);
-        // Si el pago es un ingreso extra (no tiene matrícula), redirigir a la vista de pagos extra
         if ($pago->matricula_id === null) {
             return view('pagos.show_extra', compact('pago'));
         }
 
-        // Verificar si la matrícula, estudiante y carrera existen antes de acceder a ellas
         if (!$pago->matricula || !$pago->matricula->estudianteCarrera || !$pago->matricula->estudianteCarrera->estudiante) {
             return redirect()->route('pagos.lista')->with('error', 'No se encontraron los datos del estudiante.');
         }
 
-        // Obtener los detalles del estudiante, su carrera, y los meses pagados
-        $estudiante = $pago->matricula->estudianteCarrera->estudiante; // Relación entre Pago -> Matricula -> Estudiante
-        $carrera = $pago->matricula->estudianteCarrera->carrera; // Relación entre Pago -> Matricula -> Carrera
+        $estudiante = $pago->matricula->estudianteCarrera->estudiante;
+        $carrera = $pago->matricula->estudianteCarrera->carrera;
         $nivel = $pago->matricula->estudianteCarrera->carrera->nivel;
-        $mesesPagados = $pago->meses_pagados; // Los meses que el estudiante pagó, los puedes obtener si están almacenados en el pago
+        $mesesPagados = $pago->meses_pagados;
         return view('pagos.show', compact('pago', 'estudiante', 'carrera', 'mesesPagados', 'nivel'));
     }
 
@@ -207,72 +181,49 @@ class PagosController extends Controller
     {
         $pago = Pagos::findOrFail($id);
 
-        // Si el pago es un ingreso extra (sin matrícula), mostrar la vista de impresión para pagos extra
         if ($pago->matricula_id === null) {
             return view('pagos.print_extra', compact('pago'));
         }
 
-        // Verificar que la matrícula y sus relaciones existan antes de acceder a ellas
         if (!$pago->matricula || !$pago->matricula->estudianteCarrera || !$pago->matricula->estudianteCarrera->estudiante) {
             return redirect()->route('pagos.lista')->with('error', 'No se encontraron los datos del estudiante.');
         }
 
-        // Obtener los detalles del estudiante, carrera y nivel
         $estudiante = $pago->matricula->estudianteCarrera->estudiante;
         $carrera = $pago->matricula->estudianteCarrera->carrera;
         $nivel = $carrera->nivel;
-        $mesesPagados = $pago->mes_pago; // Los meses que el estudiante pagó
+        $mesesPagados = $pago->mes_pago;
 
         return view('pagos.print', compact('pago', 'estudiante', 'carrera', 'mesesPagados', 'nivel'));
     }
 
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\pagos  $pagos
-     * @return \Illuminate\Http\Response
-     */
     public function edit(pagos $pagos)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\pagos  $pagos
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, pagos $pagos)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\pagos  $pagos
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(pagos $pagos)
     {
         //
     }
-    //Pago-Extra
+
     public function createExtra()
     {
         return view('pagos.pago_extra');
     }
-    public function showExtra($id){
-           // Buscar el pago por su id
-           $pago = Pagos::findOrFail($id);
-          
-           // Si el pago es un ingreso extra (no tiene matrícula), redirigir a la vista de pagos extra
-           if ($pago->matricula_id === null) {
-               return view('pagos.show_extra', compact('pago'));
-           }
+
+    public function showExtra($id)
+    {
+        $pago = Pagos::findOrFail($id);
+
+        if ($pago->matricula_id === null) {
+            return view('pagos.show_extra', compact('pago'));
+        }
     }
 
     public function storeExtra(Request $request)
@@ -283,15 +234,14 @@ class PagosController extends Controller
             'fecha' => 'required|date',
         ]);
 
-        // Guardar el pago en la tabla `pagos` con matricula_id y mes_pago en NULL
-        $pagoExtra=Pagos::create([
-            'matricula_id' => null, // Es un ingreso extra
+        $pagoExtra = Pagos::create([
+            'matricula_id' => null,
             'concepto' => $request->concepto,
             'fecha' => $request->fecha,
             'monto' => $request->monto,
             'mes_pago' => null,
         ]);
 
-        return redirect()->route('pagos.show_extra',['id' => $pagoExtra->pago_id])->with('success', 'Ingreso extra registrado exitosamente.');
+        return redirect()->route('pagos.show_extra', ['id' => $pagoExtra->pago_id])->with('success', 'Ingreso extra registrado exitosamente.');
     }
 }

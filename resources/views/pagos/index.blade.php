@@ -77,6 +77,17 @@
                     <div class="card">
                         <div class="card-header text-center bg-primary text-white">Recibo de Pagos</div>
                         <div class="card-body">
+                            @if (!empty($gestionAlert))
+                                <div class="alert alert-warning">
+                                    {{ $gestionAlert }}
+                                </div>
+                            @endif
+                            @if (!empty($gestionActiva))
+                                <div class="alert alert-info">
+                                    Gestion activa: <strong>{{ $gestionActiva->descripcion }}</strong>
+                                </div>
+                            @endif
+                            <input type="hidden" id="gestion_activa_id" value="{{ optional($gestionActiva)->gestion_id }}">
                             <form action="{{ route('pagos.store') }}" method="post" autocomplete="off">
                                 @csrf
                                 <div class="row">
@@ -117,7 +128,8 @@
                                     </div>
                                     <div class="col-md-4 mb-3">
                                         <label for="monto">Monto:</label>
-                                        <input type="number" class="form-control" id="monto" value="" name="monto" required readonly>
+                                        <input type="number" class="form-control" id="monto" value=""
+                                            name="monto" required readonly>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -213,14 +225,18 @@
 
 
     <script>
+        const apiBase = @json(rtrim(url('/api'), '/') . '/');
         const inputEstudiante = document.getElementById('buscar_estudiante');
         const sugerencias = document.getElementById('sugerencias');
         const inputNombreApellido = document.getElementById('buscar_estudiante');
         const selectCarrera = document.getElementById('matriculaCarrera');
+        const gestionActivaInput = document.getElementById('gestion_activa_id');
 
         const buscarEstudiante = async (texto) => {
             try {
-                const url = `http://ethahansrot.ddns.net/api/estudiantes/create/buscar?q=${texto}`;
+                const gestionId = gestionActivaInput ? gestionActivaInput.value : '';
+                const url =
+                    `${apiBase}estudiantes/create/buscar?q=${encodeURIComponent(texto)}&gestion_id=${encodeURIComponent(gestionId)}`;
                 const resultado = await fetch(url);
 
                 if (!resultado.ok) {
@@ -326,103 +342,104 @@
         });
     </script>
 
-<script>
-    const montoInput = document.getElementById('monto');
-    let totalMonto = 0;
-    let mesesSeleccionados = []; // Array para guardar los meses seleccionados
+    <script>
+        const montoInput = document.getElementById('monto');
+        let totalMonto = 0;
+        let mesesSeleccionados = []; // Array para guardar los meses seleccionados
 
-    // Función para calcular el monto
-    const calcularMonto = () => {
-        montoInput.value = totalMonto; // Actualiza el input de monto con el valor calculado
-    };
+        // Función para calcular el monto
+        const calcularMonto = () => {
+            montoInput.value = totalMonto; // Actualiza el input de monto con el valor calculado
+        };
 
-    // Función para mostrar/ocultar la lista de meses
-    const toggleMeses = () => {
-        $(".mes-lista").toggle();
-    };
+        // Función para mostrar/ocultar la lista de meses
+        const toggleMeses = () => {
+            $(".mes-lista").toggle();
+        };
 
-    // Función para actualizar los meses seleccionados en el campo de texto
-    const actualizarMesesSeleccionados = () => {
-        $("#mes_pago").val(mesesSeleccionados.join(', '));
-    };
+        // Función para actualizar los meses seleccionados en el campo de texto
+        const actualizarMesesSeleccionados = () => {
+            $("#mes_pago").val(mesesSeleccionados.join(', '));
+        };
 
-    // Función para manejar la selección de meses
-    $("input[name='meses[]']").on("change", function() {
-        // Actualizar los meses seleccionados
-        mesesSeleccionados = [];
-        $("input[name='meses[]']:checked").each(function() {
-            mesesSeleccionados.push($(this).val());
+        // Función para manejar la selección de meses
+        $("input[name='meses[]']").on("change", function() {
+            // Actualizar los meses seleccionados
+            mesesSeleccionados = [];
+            $("input[name='meses[]']:checked").each(function() {
+                mesesSeleccionados.push($(this).val());
+            });
+
+            // Actualizar el valor en el campo de texto
+            actualizarMesesSeleccionados();
+
+            // Actualizar el monto total
+            totalMonto = mesesSeleccionados.length * 20;
+            calcularMonto();
         });
 
-        // Actualizar el valor en el campo de texto
-        actualizarMesesSeleccionados();
+        $(document).on("click", function(event) {
+            // Cerrar la lista de meses si se hace clic fuera de ella
+            if (!$(event.target).closest('.mes-selector').length) {
+                $(".mes-lista").hide();
+            }
+        });
 
-        // Actualizar el monto total
-        totalMonto = mesesSeleccionados.length * 20;
-        calcularMonto();
-    });
+        function seleccionarPago() {
+            const matriculasEstudiante = JSON.parse(localStorage.getItem("matriculasEstudiante")) || [];
+            const carreraSelect = document.getElementById("matriculaCarrera");
+            const checkboxContainer = document.querySelector(".checkbox-container");
 
-    $(document).on("click", function(event) {
-        // Cerrar la lista de meses si se hace clic fuera de ella
-        if (!$(event.target).closest('.mes-selector').length) {
-            $(".mes-lista").hide();
-        }
-    });
+            // Cuando se cambia la carrera seleccionada
+            carreraSelect.addEventListener("change", (event) => {
+                const matriculaIdSeleccionada = parseInt(event.target.value);
+                const matricula = matriculasEstudiante.find(item => item.id_matricula === matriculaIdSeleccionada);
 
-    function seleccionarPago() {
-        const matriculasEstudiante = JSON.parse(localStorage.getItem("matriculasEstudiante")) || [];
-        const carreraSelect = document.getElementById("matriculaCarrera");
-        const checkboxContainer = document.querySelector(".checkbox-container");
+                // Reiniciar el monto y los meses seleccionados al cambiar de carrera
+                totalMonto = 0;
+                mesesSeleccionados = [];
+                calcularMonto();
 
-        // Cuando se cambia la carrera seleccionada
-        carreraSelect.addEventListener("change", (event) => {
-            const matriculaIdSeleccionada = parseInt(event.target.value);
-            const matricula = matriculasEstudiante.find(item => item.id_matricula === matriculaIdSeleccionada);
+                checkboxContainer.innerHTML = ''; // Limpiar los checkboxes previos
 
-            // Reiniciar el monto y los meses seleccionados al cambiar de carrera
-            totalMonto = 0;
-            mesesSeleccionados = [];
-            calcularMonto();
-
-            checkboxContainer.innerHTML = ''; // Limpiar los checkboxes previos
-
-            if (matricula) {
-                // Mostrar los meses pendientes de pago
-                checkboxContainer.innerHTML = matricula.meses_pendientes.map(mes => `
+                if (matricula) {
+                    // Mostrar los meses pendientes de pago
+                    checkboxContainer.innerHTML = matricula.meses_pendientes.map(mes => `
                     <label>
                         <input type="checkbox" name="meses[]" value="${mes}" class="mesCheckbox">
                         ${mes}
                     </label>
                 `).join("");
 
-                // Agregar evento a los checkboxes para manejar el cambio de selección
-                const checkboxes = document.querySelectorAll(".mesCheckbox");
-                checkboxes.forEach(checkbox => {
-                    checkbox.addEventListener("change", (event) => {
-                        if (event.target.checked) {
-                            // Si el mes es seleccionado, se agrega al array y se suma el monto
-                            mesesSeleccionados.push(event.target.value);
-                            totalMonto += 20;
-                        } else {
-                            // Si el mes es desmarcado, se elimina del array y se resta el monto
-                            mesesSeleccionados = mesesSeleccionados.filter(mes => mes !== event.target.value);
-                            totalMonto -= 20;
-                        }
-                        // Actualizar el monto en el input y el campo de meses seleccionados
-                        calcularMonto();
-                        actualizarMesesSeleccionados();
+                    // Agregar evento a los checkboxes para manejar el cambio de selección
+                    const checkboxes = document.querySelectorAll(".mesCheckbox");
+                    checkboxes.forEach(checkbox => {
+                        checkbox.addEventListener("change", (event) => {
+                            if (event.target.checked) {
+                                // Si el mes es seleccionado, se agrega al array y se suma el monto
+                                mesesSeleccionados.push(event.target.value);
+                                totalMonto += 20;
+                            } else {
+                                // Si el mes es desmarcado, se elimina del array y se resta el monto
+                                mesesSeleccionados = mesesSeleccionados.filter(mes => mes !== event
+                                    .target.value);
+                                totalMonto -= 20;
+                            }
+                            // Actualizar el monto en el input y el campo de meses seleccionados
+                            calcularMonto();
+                            actualizarMesesSeleccionados();
+                        });
                     });
-                });
 
-            } else {
-                checkboxContainer.innerHTML = "<p>No hay meses pendientes</p>";
-            }
-        });
-    }
+                } else {
+                    checkboxContainer.innerHTML = "<p>No hay meses pendientes</p>";
+                }
+            });
+        }
 
-    // Llamar a la función para iniciar la lógica de selección de pago
-    seleccionarPago();
-</script>
+        // Llamar a la función para iniciar la lógica de selección de pago
+        seleccionarPago();
+    </script>
 
 
 

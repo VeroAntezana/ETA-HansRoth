@@ -5,101 +5,119 @@ namespace App\Http\Controllers;
 use App\Models\carrera_Estudiantes;
 use App\Models\Carreras;
 use App\Models\Estudiantes;
-use App\Models\Gestion;
-use App\Models\niveles;
 use App\Models\Matricula;
+use App\Models\niveles;
+use App\Support\GestionContextResolver;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
-use Illuminate\Support\Facades\Log;
-use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
 class EstudiantesController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    private GestionContextResolver $gestionResolver;
+
+    public function __construct(GestionContextResolver $gestionResolver)
     {
-        $estudiantes = Estudiantes::with('carreras', 'matriculas.gestion')->orderBy('estudiante_id', 'asc')->paginate(9);
-        $gestiones = Gestion::all();
-        $carreras = carreras::with('nivel')->get();
-        return view('estudiantes.index', compact('estudiantes', 'gestiones', 'carreras'));
+        $this->gestionResolver = $gestionResolver;
     }
 
+    public function index(Request $request)
+    {
+        $context = $this->gestionResolver->resolve($request->input('gestion_id'));
+
+        $query = Estudiantes::with('carreras', 'matriculas.gestion')->orderBy('estudiante_id', 'asc');
+        if ($context['gestionActiva']) {
+            $gestionId = $context['gestionActiva']->gestion_id;
+            $query->whereHas('matriculas', function ($q) use ($gestionId) {
+                $q->where('gestion_id', $gestionId);
+            });
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        $estudiantes = $query->paginate(9)->appends($request->query());
+        $gestiones = $context['gestiones'];
+        $carreras = Carreras::with('nivel')->get();
+        $gestionActiva = $context['gestionActiva'];
+        $gestionAlert = $context['gestionAlert'];
+
+        return view('estudiantes.index', compact('estudiantes', 'gestiones', 'carreras', 'gestionActiva', 'gestionAlert'));
+    }
 
     public function indexByNivel($carrera_nombre, $nivel_nombre)
     {
-        // Busca la carrera según el nombre
+        $context = $this->gestionResolver->resolve(request()->input('gestion_id'));
+
         $carrera = DB::table('carrera')
             ->join('nivel', 'carrera.nivel_id', '=', 'nivel.nivel_id')
             ->select('carrera.*', 'nivel.nombre as nivel_nombre')
             ->where('carrera.nombre', str_replace('-', ' ', $carrera_nombre))
             ->where('nivel.nombre', $nivel_nombre)
             ->first();
-        // Busca el nivel según el nombre
+
         $nivel = niveles::where('nombre', $nivel_nombre)->first();
 
+        $gestiones = $context['gestiones'];
+        $gestionActiva = $context['gestionActiva'];
+        $gestionAlert = $context['gestionAlert'];
+
         if (!$carrera) {
-            $estudiantes = collect(); // Colección vacía
-            $gestiones = Gestion::all();
-            return view('estudiantes.index_carrera_nivel', compact('estudiantes', 'carrera', 'nivel', 'gestiones'))
+            $estudiantes = collect();
+            return view('estudiantes.index_carrera_nivel', compact('estudiantes', 'carrera', 'nivel', 'gestiones', 'gestionActiva', 'gestionAlert'))
                 ->with('error', 'La carrera especificada no existe.');
         }
-
-
 
         if (!$nivel) {
             return redirect()->route('estudiantes.index')->with('error', 'El nivel especificado no existe.');
         }
 
-        // Llamada al procedimiento almacenado
-        $estudiantes = DB::select('CALL ObtenerEstudiantesPorCarrera(?)', [$carrera->carrera_id]);
-
-
-        $gestiones = Gestion::all();
+        if ($gestionActiva) {
+            $estudiantes = DB::table('estudiante as e')
+                ->join('estudiante_carrera as ec', 'e.estudiante_id', '=', 'ec.estudiante_id')
+                ->join('carrera as c', 'ec.carrera_id', '=', 'c.carrera_id')
+                ->join('nivel as n', 'c.nivel_id', '=', 'n.nivel_id')
+                ->join('matricula as m', 'm.estudiante_carrera_id', '=', 'ec.estudiante_carrera_id')
+                ->where('c.carrera_id', $carrera->carrera_id)
+                ->where('m.gestion_id', $gestionActiva->gestion_id)
+                ->select(
+                    'e.estudiante_id as ID_Estudiante',
+                    'e.nombre as NombreEstudiante',
+                    'e.apellidos as ApellidosEstudiante',
+                    'e.ci as CI',
+                    'c.nombre as NombreCarrera',
+                    'n.nombre as Nivel'
+                )
+                ->distinct()
+                ->get();
+        } else {
+            $estudiantes = collect();
+        }
 
         if (empty($estudiantes)) {
-            return view('estudiantes.index_carrera_nivel', compact('estudiantes', 'carrera', 'nivel', 'gestiones'))
+            return view('estudiantes.index_carrera_nivel', compact('estudiantes', 'carrera', 'nivel', 'gestiones', 'gestionActiva', 'gestionAlert'))
                 ->with('info', 'No hay estudiantes registrados para esta carrera y nivel.');
         }
 
-        return view('estudiantes.index_carrera_nivel', compact('estudiantes', 'carrera', 'nivel', 'gestiones'));
+        return view('estudiantes.index_carrera_nivel', compact('estudiantes', 'carrera', 'nivel', 'gestiones', 'gestionActiva', 'gestionAlert'));
     }
 
-
-
-
-
-
-
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function create(Request $request)
     {
+        $context = $this->gestionResolver->resolve($request->input('gestion_id'));
+
         $estudiantes = Estudiantes::all();
         $carreras = Carreras::with('nivel')->get();
-        $gestiones = Gestion::all();
-       
-        return view('estudiantes.create', compact('estudiantes', 'carreras', 'gestiones'));
+        $gestiones = $context['gestiones'];
+        $gestionActiva = $context['gestionActiva'];
+        $gestionAlert = $context['gestionAlert'];
+
+        return view('estudiantes.create', compact('estudiantes', 'carreras', 'gestiones', 'gestionActiva', 'gestionAlert'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        // Validar los datos del request, excepto la unicidad del CI
         $request->validate([
             'nombre' => 'required',
             'apellidos' => 'required',
@@ -110,19 +128,12 @@ class EstudiantesController extends Controller
             'gestion_id' => 'required|exists:gestion,gestion_id',
         ]);
 
-        // Comprobar si el estudiante ya existe por su CI
         $estudianteExistente = Estudiantes::where('ci', $request->input('ci'))->first();
 
         if ($estudianteExistente) {
-            // Si el estudiante existe, cargar sus datos, incluidas las carreras
-            $datosEstudiante = Estudiantes::with('carreras')
-                ->where('ci', $request->input('ci'))
-                ->first();
-
             return redirect()->route('estudiantes.index')->with('error', 'El estudiante ya existe, Matricule en otra carrera');
         }
 
-        // Si el estudiante no existe, proceder a crearlo
         $estudiante = Estudiantes::create([
             'nombre' => $request->input('nombre'),
             'apellidos' => $request->input('apellidos'),
@@ -131,14 +142,12 @@ class EstudiantesController extends Controller
             'sexo' => $request->input('sexo'),
         ]);
 
-        // Crear la relación con la carrera
         $carreraEstudiante = carrera_Estudiantes::create([
             'estudiante_id' => $estudiante->estudiante_id,
             'carrera_id' => $request->input('carrera_id'),
             'fecha_inscripcion' => now(),
         ]);
 
-        // Crear la matrícula
         Matricula::create([
             'estudiante_carrera_id' => $carreraEstudiante->estudiante_carrera_id,
             'gestion_id' => $request->input('gestion_id'),
@@ -146,30 +155,23 @@ class EstudiantesController extends Controller
             'estado' => 'Activa',
         ]);
 
-        // Retornar éxito si el estudiante fue creado
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante creado exitosamente.');
     }
 
     public function MatricularEstudianteAntiguo(Request $request)
     {
-
-        // Validar los datos del request, excepto la unicidad del CI
         $request->validate([
             'estudiante_id' => 'required',
             'carrera_id' => 'required',
             'gestion_id' => 'required',
         ]);
 
-
-
-        // Crear la relación con la carrera
         $carreraEstudiante = carrera_Estudiantes::create([
             'estudiante_id' => $request->estudiante_id,
             'carrera_id' => $request->input('carrera_id'),
             'fecha_inscripcion' => now(),
         ]);
 
-        // Crear la matrícula
         Matricula::create([
             'estudiante_carrera_id' => $carreraEstudiante->estudiante_carrera_id,
             'gestion_id' => $request->input('gestion_id'),
@@ -177,39 +179,19 @@ class EstudiantesController extends Controller
             'estado' => 'Activa',
         ]);
 
-        // Retornar éxito si el estudiante fue creado
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante Matriculado exitosamente.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Estudiantes  $estudiantes
-     * @return \Illuminate\Http\Response
-     */
     public function show(Estudiantes $estudiantes)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Estudiantes  $estudiantes
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Estudiantes $estudiantes)
     {
         return view('estudiantes.edit', compact('estudiante'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Estudiantes  $estudiantes
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, $id)
     {
         $estudiante = Estudiantes::findOrFail($id);
@@ -226,12 +208,6 @@ class EstudiantesController extends Controller
         return redirect()->route('estudiantes.index')->with('success', 'Estudiante actualizado exitosamente');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Estudiantes  $estudiantes
-     * @return \Illuminate\Http\Response
-     */
     public function destroy($id)
     {
         try {
@@ -239,18 +215,15 @@ class EstudiantesController extends Controller
 
             $estudiante = Estudiantes::findOrFail($id);
 
-            // Delete matriculas first
             DB::table('matricula')
                 ->join('estudiante_carrera', 'matricula.estudiante_carrera_id', '=', 'estudiante_carrera.estudiante_carrera_id')
                 ->where('estudiante_carrera.estudiante_id', $id)
                 ->delete();
 
-            // Delete estudiante_carrera records
             DB::table('estudiante_carrera')
                 ->where('estudiante_id', $id)
                 ->delete();
 
-            // Finally delete the estudiante
             $estudiante->delete();
 
             DB::commit();
@@ -264,18 +237,28 @@ class EstudiantesController extends Controller
     public function buscarEstudiante(Request $request)
     {
         $texto = trim($request->q);
+        $context = $this->gestionResolver->resolve($request->input('gestion_id'));
 
-        $resultado = Estudiantes::with([
+        $query = Estudiantes::with([
             'estudianteCarreras.carrera.nivel',
             'estudianteCarreras.matriculas.gestion',
             'estudianteCarreras.matriculas.pagos'
-        ])
-            ->where(function ($query) use ($texto) {
-                $query->where('ci', 'like', "%$texto%")
-                    ->orWhereRaw("LOWER(CONCAT(nombre, ' ', apellidos)) LIKE LOWER(?)", ["%$texto%"])
-                    ->orWhereRaw("LOWER(CONCAT(apellidos, ' ', nombre)) LIKE LOWER(?)", ["%$texto%"]);
-            })
-            ->orderBy('estudiante_id', 'desc')
+        ])->where(function ($builder) use ($texto) {
+            $builder->where('ci', 'like', "%$texto%")
+                ->orWhereRaw("LOWER(CONCAT(nombre, ' ', apellidos)) LIKE LOWER(?)", ["%$texto%"])
+                ->orWhereRaw("LOWER(CONCAT(apellidos, ' ', nombre)) LIKE LOWER(?)", ["%$texto%"]);
+        });
+
+        if ($context['gestionActiva']) {
+            $gestionId = $context['gestionActiva']->gestion_id;
+            $query->whereHas('estudianteCarreras.matriculas', function ($q) use ($gestionId) {
+                $q->where('gestion_id', $gestionId);
+            });
+        } else {
+            $query->whereRaw('1 = 0');
+        }
+
+        $resultado = $query->orderBy('estudiante_id', 'desc')
             ->get()
             ->map(function ($estudiante) {
                 $nombreCompleto = "{$estudiante->nombre} {$estudiante->apellidos}";
@@ -292,21 +275,20 @@ class EstudiantesController extends Controller
                             $mesesPagados = $matricula->pagos->pluck('mes_pago')->unique();
                             $modulosPagados = $mesesPagados->map(function ($item) {
                                 return explode(', ', $item);
-                            })->flatten()->unique(); // Meses ya pagados
+                            })->flatten()->unique();
 
-                            // Generar todos los meses esperados basados en la duración de la carrera
                             $todosLosMeses = collect();
                             for ($i = 1; $i <= $duracionMeses; $i++) {
                                 $todosLosMeses->push("Mod $i");
                             }
 
-                            $mesesPendientes = $todosLosMeses->diff($modulosPagados); // Filtro para obtener pendientes
+                            $mesesPendientes = $todosLosMeses->diff($modulosPagados);
 
                             return [
                                 'id_matricula' => $matricula->matricula_id,
-                                'gestion' => $matricula->gestion->descripcion ?? 'Sin gestión',
-                                'meses_pagados' => $modulosPagados->values(), // Meses ya pagados
-                                'meses_pendientes' => $mesesPendientes->values(), // Meses pendientes
+                                'gestion' => $matricula->gestion->descripcion ?? 'Sin gestion',
+                                'meses_pagados' => $modulosPagados->values(),
+                                'meses_pendientes' => $mesesPendientes->values(),
                             ];
                         }),
                     ];
@@ -325,13 +307,21 @@ class EstudiantesController extends Controller
         return response()->json($resultado);
     }
 
-
     public function exportExcel(Request $request)
     {
         try {
+            $context = $this->gestionResolver->resolve($request->input('gestion_id'));
             $query = Estudiantes::with('carreras');
 
-            // Si se seleccionó una carrera específica
+            if ($context['gestionActiva']) {
+                $gestionId = $context['gestionActiva']->gestion_id;
+                $query->whereHas('matriculas', function ($q) use ($gestionId) {
+                    $q->where('gestion_id', $gestionId);
+                });
+            } else {
+                $query->whereRaw('1 = 0');
+            }
+
             if ($request->carrera_id && $request->carrera_id !== 'todas') {
                 $query->whereHas('carreras', function ($q) use ($request) {
                     $q->where('carrera.carrera_id', $request->carrera_id);
@@ -344,7 +334,6 @@ class EstudiantesController extends Controller
             foreach ($estudiantes as $estudiante) {
                 $carrerasNivel = [];
                 foreach ($estudiante->carreras as $carrera) {
-                    // Si es todas las carreras o es la carrera seleccionada
                     if ($request->carrera_id === 'todas' || $carrera->carrera_id == $request->carrera_id) {
                         $carrerasNivel[] = $carrera->nombre . ' - ' . optional($carrera->nivel)->nombre;
                     }
@@ -359,12 +348,10 @@ class EstudiantesController extends Controller
                 ];
             }
 
-            // Nombre del archivo según el filtro
             $nombreArchivo = 'estudiantes';
             if ($request->carrera_id && $request->carrera_id !== 'todas') {
                 $carrera = Carreras::find($request->carrera_id);
-                $nombreArchivo .= '_' . str_replace(' ', '_', $carrera->nombre) .
-                    '_' . str_replace(' ', '_', $carrera->nivel->nombre);
+                $nombreArchivo .= '_' . str_replace(' ', '_', $carrera->nombre) . '_' . str_replace(' ', '_', $carrera->nivel->nombre);
             }
             $nombreArchivo .= '.xlsx';
 

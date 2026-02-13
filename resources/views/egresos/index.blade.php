@@ -9,16 +9,33 @@
                     <div class="col">
                         <h3 class="card-title m-0">
                             <strong>LISTA DE EGRESOS</strong>
-                            <a class="btn" href="{{ route('egresos.index') }}">
+                            <a class="btn" href="{{ route('egresos.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}">
                                 <i class="fas fa-sync fa-md fa-fw"></i>
                             </a>
                         </h3>
                     </div>
                     <div class="col text-right">
-                        <a href="{{ route('egresos.create') }}" class="btn btn-primary">Nuevo</a>
+                        <form method="GET" action="{{ route('egresos.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" class="d-inline-block mr-2">
+                            <select name="gestion_id" class="form-control select2" style="width: 220px;"
+                                onchange="this.form.submit()">
+                                @foreach ($gestiones as $gestion)
+                                    <option value="{{ $gestion->gestion_id }}"
+                                        {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                                        {{ $gestion->descripcion }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                        <a href="{{ route('egresos.create', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" class="btn btn-primary">Nuevo</a>
                     </div>
                 </div>
             </div>
+
+            @if (!empty($gestionAlert))
+                <div class="alert alert-warning mx-3 mt-3 mb-0">
+                    {{ $gestionAlert }}
+                </div>
+            @endif
             <div class="card">
                 <div class="card-body text-center">
                     <h4>Total de Egresos</h4>
@@ -29,7 +46,8 @@
 
             <!-- Filtro de fechas -->
             <div class="card-body">
-                <form method="GET" action="{{ route('egresos.index') }}" class="form-inline">
+                <form method="GET" action="{{ route('egresos.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" class="form-inline">
+                    <input type="hidden" name="gestion_id" value="{{ optional($gestionActiva)->gestion_id }}">
                     <div class="form-group mx-2">
                         <label for="fecha_inicio">Fecha Inicio: </label>
                         <input type="date" class="form-control ml-2" name="fecha_inicio" value="{{ request('fecha_inicio') }}">
