@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Gestion;
 use App\Models\Matricula;
 use Illuminate\Http\Request;
 
@@ -24,7 +25,9 @@ class MatriculaController extends Controller
      */
     public function create()
     {
-        //
+        $gestiones = Gestion::with('semestres')->orderBy('gestion_id', 'desc')->get();
+
+        return view('matriculas.create', compact('gestiones'));
     }
 
     /**

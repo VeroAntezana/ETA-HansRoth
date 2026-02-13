@@ -35,5 +35,10 @@ class Gestion extends Model
     {
         return $this->hasMany(Matricula::class, 'gestion_id');
     }
+    public function semestres()
+    {
+        return $this->hasMany(Semestre::class, 'gestion_id', 'gestion_id');
+    }
+
     public $timestamps = false;
 }
