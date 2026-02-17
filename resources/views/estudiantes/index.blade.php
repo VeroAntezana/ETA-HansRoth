@@ -254,6 +254,7 @@
 
 @section('js')
 <script>
+    (function() { 
     const apiBase = @json(rtrim(url('/api'), '/').'/');
     const inputEstudiante = document.getElementById('buscar_estudiante');
     const sugerencias = document.getElementById('sugerencias');
@@ -262,7 +263,7 @@
     const selectCarrera = document.getElementById('matriculaCarrera');
     const estudianteID = document.getElementById('estudiante_id')
     const selectGestion = document.querySelector('#matricularEstudianteModal select[name="gestion_id"]');
-
+    if (!inputEstudiante) return;
     const buscarEstudiante = async (texto) => {
         try {
             const gestionId = selectGestion ? selectGestion.value : '';
@@ -337,6 +338,7 @@
 
     // Aplica debounce a manejarCambio con un retraso de 300ms
     inputEstudiante.addEventListener('keyup', debounce(manejarCambio, 300));
+    })();
 </script>
 <!-- <script>
     function confirmarEliminacion(estudianteId) {
