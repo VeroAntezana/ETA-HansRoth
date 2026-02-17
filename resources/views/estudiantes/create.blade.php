@@ -198,7 +198,7 @@
 
         const buscarEstudiante = async (texto) => {
             try {
-                const url = `{{ config('app.url') }}/api/estudiantes/create/buscar?q=${texto}`;
+                const url = `{{config('app.url')}}/api/estudiantes/create/buscar?q=${texto}`;
                 const resultado = await fetch(url);
                 if (!resultado.ok) {
                     throw new Error(`Error en la solicitud: ${resultado.status}`);
