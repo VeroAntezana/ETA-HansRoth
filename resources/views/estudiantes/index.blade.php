@@ -86,10 +86,10 @@
                             <select name="gestion_id" class="form-control select2" style="width: 220px;"
                                 onchange="this.form.submit()">
                                 @foreach ($gestiones as $gestion)
-                                    <option value="{{ $gestion->gestion_id }}"
-                                        {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
-                                        {{ $gestion->descripcion }}
-                                    </option>
+                                <option value="{{ $gestion->gestion_id }}"
+                                    {{ optional($gestionActiva)->gestion_id == $gestion->gestion_id ? 'selected' : '' }}>
+                                    {{ $gestion->descripcion }}
+                                </option>
                                 @endforeach
                             </select>
                         </form>
@@ -98,9 +98,9 @@
                 </div>
 
                 @if (!empty($gestionAlert))
-                    <div class="alert alert-warning mt-2 mb-0 mx-3">
-                        {{ $gestionAlert }}
-                    </div>
+                <div class="alert alert-warning mt-2 mb-0 mx-3">
+                    {{ $gestionAlert }}
+                </div>
                 @endif
 
                 <div class="card-body p-0">
@@ -254,7 +254,7 @@
 
 @section('js')
 <script>
-    const apiBase = @json(rtrim(url('/api'), '/') . '/');
+    const apiBase = @json(rtrim(url('/api'), '/').'/');
     const inputEstudiante = document.getElementById('buscar_estudiante');
     const sugerencias = document.getElementById('sugerencias');
     const inputNombreApellido = document.getElementById('nombre_apellido');
@@ -338,13 +338,12 @@
     // Aplica debounce a manejarCambio con un retraso de 300ms
     inputEstudiante.addEventListener('keyup', debounce(manejarCambio, 300));
 </script>
-<script>
+<!-- <script>
     function confirmarEliminacion(estudianteId) {
         if (confirm('¿Estás seguro de que deseas eliminar esta carrera?')) {
             // Si el usuario hace clic en "Aceptar", redirige al controlador para eliminar el nivel
-            window.location.href = '{{ url('
-            estudiantes ') }}/' + carreraId;
+            window.location.href = @json(url('estudiantes')) + '/' + estudianteId;
         }
     }
-</script>
+</script> -->
 @stop
