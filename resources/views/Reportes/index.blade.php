@@ -85,7 +85,7 @@
                                 </select>
                             </form>
                         </div>
-                        <button type="submit" class="btn btn-primary ml-4 align-self-end">Exportar a
+                        <button type="submit" form="exportForm" class="btn btn-primary ml-4 align-self-end">Exportar a
                                         Excel</button>
                         <div class="col-md-auto">
                             <a href="{{ route('pagos.index', ['gestion_id' => optional($gestionActiva)->gestion_id]) }}" class="btn btn-primary">Nuevo</a>

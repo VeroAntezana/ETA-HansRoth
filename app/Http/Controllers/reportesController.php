@@ -44,19 +44,12 @@ class reportesController extends Controller
                 'matricula.estudianteCarrera.estudiante',
                 'matricula.estudianteCarrera.carrera.nivel'
             ])
-                ->where(function ($query) use ($gestionActiva, $inicio, $fin) {
-                    $query->where(function ($q) use ($gestionActiva, $inicio, $fin) {
-                        $q->whereHas('matricula', function ($mq) use ($gestionActiva) {
-                            $mq->where('gestion_id', $gestionActiva->gestion_id);
-                        })->whereBetween(DB::raw('DATE(fecha)'), [$inicio->toDateString(), $fin->toDateString()]);
-                    })->orWhere(function ($q) use ($inicio, $fin) {
-                        $q->whereNull('matricula_id')
-                            ->whereBetween(DB::raw('DATE(fecha)'), [$inicio->toDateString(), $fin->toDateString()]);
-                    });
-                })->get();
+                ->whereBetween(DB::raw('DATE(fecha)'), [$inicio->toDateString(), $fin->toDateString()])
+                ->get();
 
             $totalPagos = $pagos->sum('monto');
-            $totalegresos = Egreso::where('gestion_id', $gestionActiva->gestion_id)->sum('monto');
+            $totalegresos = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$inicio->toDateString(), $fin->toDateString()])
+                ->sum('monto');
 
             $pagoConDetalles = $pagos->map(function ($pago) {
                 $matricula = $pago->matricula;
@@ -149,21 +142,14 @@ class reportesController extends Controller
 
         $fechaInicioCarbon = Carbon::parse($fechaInicio)->startOfDay();
         $fechaFinCarbon = Carbon::parse($fechaFin)->endOfDay();
+        $gestionInicioCarbon = Carbon::parse($gestionActiva->fecha_inicio)->startOfDay();
+        $gestionFinCarbon = Carbon::parse($gestionActiva->fecha_fin)->endOfDay();
 
         $pagos = pagos::with([
             'matricula.estudianteCarrera.estudiante',
             'matricula.estudianteCarrera.carrera.nivel'
         ])
-            ->where(function ($query) use ($gestionActiva, $fechaInicioCarbon, $fechaFinCarbon) {
-                $query->where(function ($q) use ($gestionActiva, $fechaInicioCarbon, $fechaFinCarbon) {
-                    $q->whereHas('matricula', function ($mq) use ($gestionActiva) {
-                        $mq->where('gestion_id', $gestionActiva->gestion_id);
-                    })->whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioCarbon->toDateString(), $fechaFinCarbon->toDateString()]);
-                })->orWhere(function ($q) use ($fechaInicioCarbon, $fechaFinCarbon) {
-                    $q->whereNull('matricula_id')
-                        ->whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioCarbon->toDateString(), $fechaFinCarbon->toDateString()]);
-                });
-            })
+            ->whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioCarbon->toDateString(), $fechaFinCarbon->toDateString()])
             ->get();
 
         $datosPagos = $pagos->map(function ($pago) {
@@ -193,31 +179,54 @@ class reportesController extends Controller
         });
 
         $montoPagosRango = $pagos->sum('monto');
-        $montoEgresosRango = Egreso::where('gestion_id', $gestionActiva->gestion_id)
-            ->whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioCarbon->toDateString(), $fechaFinCarbon->toDateString()])
+        $montoEgresosRango = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioCarbon->toDateString(), $fechaFinCarbon->toDateString()])
             ->sum('monto');
+
+        $mesActualInicio = $fechaInicioCarbon->copy()->startOfMonth();
+        $mesAnteriorInicio = $mesActualInicio->copy()->subMonth()->startOfMonth();
+        $mesAnteriorFin = $mesActualInicio->copy()->subMonth()->endOfMonth();
+
+        $montoCajaMesAnterior = 0;
+        if (!($mesAnteriorFin->lt($gestionInicioCarbon) || $mesAnteriorInicio->gt($gestionFinCarbon))) {
+            $mesAnteriorDesde = $mesAnteriorInicio->copy();
+            $mesAnteriorHasta = $mesAnteriorFin->copy();
+
+            if ($mesAnteriorDesde->lt($gestionInicioCarbon)) {
+                $mesAnteriorDesde = $gestionInicioCarbon->copy();
+            }
+            if ($mesAnteriorHasta->gt($gestionFinCarbon)) {
+                $mesAnteriorHasta = $gestionFinCarbon->copy();
+            }
+
+            $ingresosMesAnterior = pagos::whereBetween(DB::raw('DATE(fecha)'), [$mesAnteriorDesde->toDateString(), $mesAnteriorHasta->toDateString()])
+                ->sum('monto');
+
+            $egresosMesAnterior = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$mesAnteriorDesde->toDateString(), $mesAnteriorHasta->toDateString()])
+                ->sum('monto');
+
+            $montoCajaMesAnterior = $ingresosMesAnterior - $egresosMesAnterior;
+        }
 
         $datosTotales = collect([
             [
-                'Titulo' => 'Gestion',
-                'Valor' => $gestionActiva->descripcion,
+                'Titulo' => 'Monto Total del Mes Anterior',
+                'Valor' => $montoCajaMesAnterior,
             ],
             [
-                'Titulo' => 'Ingresos del periodo',
+                'Titulo' => 'Monto Total de Ingresos (Mes Actual)',
                 'Valor' => $montoPagosRango,
             ],
             [
-                'Titulo' => 'Egresos del periodo',
+                'Titulo' => 'Monto Total de Egresos (Mes Actual)',
                 'Valor' => $montoEgresosRango,
             ],
             [
-                'Titulo' => 'Total en caja del periodo',
-                'Valor' => $montoPagosRango - $montoEgresosRango,
+                'Titulo' => 'Total en Caja (Mes Actual)',
+                'Valor' => $montoCajaMesAnterior + $montoPagosRango - $montoEgresosRango,
             ],
         ]);
 
-        $egresos = Egreso::where('gestion_id', $gestionActiva->gestion_id)
-            ->whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioCarbon->toDateString(), $fechaFinCarbon->toDateString()])
+        $egresos = Egreso::whereBetween(DB::raw('DATE(fecha)'), [$fechaInicioCarbon->toDateString(), $fechaFinCarbon->toDateString()])
             ->get();
 
         $datosEgresos = $egresos->map(function ($egreso) {
